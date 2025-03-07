@@ -1,0 +1,6 @@
+lw R1,0(R4)
+lw R2,400(R4)
+add R3,R1,R2
+sw R3,0(R4)
+sub R4,R4,4
+add R5,R6,R7
