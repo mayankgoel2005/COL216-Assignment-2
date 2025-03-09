@@ -269,10 +269,15 @@ public:
         int pc = 0;
         L0 = 1;
         int k=-1;
+        int l=0;
+        int ll=0;
         for(int cycle = 0; cycle < Cycles; cycle++) {
             if(L4.ON) {
                 cout << "WB ";
                 WBSTAGE();
+                if(l==-1){
+                    L4.ON=0;
+                }
             }else{
                 cout<<"- ";
             }
@@ -280,26 +285,36 @@ public:
                 cout << "MEM ";
                 MEMSTAGE();
                 L4.ON = 1;
+                if(l==-1){
+                    L3.ON=0;
+                }
             } else {
                 cout<<"- ";
                 L4.ON = 0;
             }
-            if(L2.ON==1) {
+            if(L2.ON) {
                 cout << "EX ";
                 EXSTAGE();
                 L3.ON = 1;
+                if(l==-1){
+                    ll--;
+                    L2.ON=0;
+                }
             } else {
                 cout<<"- ";
                 L3.ON = 0;
             }
-            if(k!=-1 && !(L3.regwrite == 1 && (L3.rd == L2.rs1 || L3.rd == L2.rs2))||(L4.regwrite == 1 && (L4.rd == L2.rs1 || L4.rd == L2.rs2))){
+            if(ll>-2 && k!=-1 && !(L3.regwrite == 1 && (L3.rd == L2.rs1 || L3.rd == L2.rs2))||(L4.regwrite == 1 && (L4.rd == L2.rs1 || L4.rd == L2.rs2))){
                 L1.ON=1;
             }
             if(L1.ON) {
                 cout << "ID ";
                 k = IDSTAGE();
                 L0=1;
-                L2.ON=1;
+                if(l==-1 && k==0){
+                    L1.ON=0;
+                    ll--;
+                }
             }else if(k!=-1){
                 L2.ON=0;
                 L0=0;
@@ -312,14 +327,19 @@ public:
                     pc++;
                     L1.ON=1;
                 }
+                if(pc==instructions.size()){
+                    l=-1;
+                }
             }else{
                 L1.ON=0;
                 cout<<"- ";
             }
             if(k == 2 || k == 1||k==-1) {
                 L2.ON = 0;
-            } else{
+            } else if(ll!=-3){
                 L2.ON=1;
+            }else{
+                L2.ON=0;
             }
             cout << endl;
         }
@@ -333,7 +353,7 @@ int main() {
         "002081b3", // add x3, x1, x2
         "00322023", // sw x3, 0(x4)
         "ffc20213", // addi x4, x4, -4
-        "007302b3"  // add x5, x6, x7
+        "004302b3"  // add x5, x6, x4
     };
 
     NFProcessor processor(instructions, 16);
