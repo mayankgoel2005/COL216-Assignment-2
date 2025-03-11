@@ -2,6 +2,7 @@
 #include <vector>
 #include <string>
 #include <cstdlib>
+#include <bits/stdc++.h>
 using namespace std;
 
 struct Latch1 {
@@ -51,13 +52,14 @@ private:
     vector<int> REG;
     vector<string> instructions;
     vector<string> v;
+    vector<vector<int>> ans;
     vector<int> MEM;
     int Cycles;
     int L0;
 
 public:
     NFProcessor(const vector<string>& instrs, int cycles)
-        : instructions(instrs), Cycles(cycles), REG(32, 0), MEM(1024, 0) {
+        : instructions(instrs), Cycles(cycles), REG(32, 0), MEM(1024, 0), ans(cycles,vector<int>(5,0)) {
         L1 = {0, 0};
         L2 = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
         L3 = {0, 0, 0, 0, 0, 0, 0};
@@ -264,7 +266,69 @@ public:
         L4.regwrite=0;
         L4.rd=0;
     }
-
+    void printpipeline(){
+        vector<pair<int,vector<int>>> fin;
+        vector<vector<int>> vis(Cycles,vector<int>(5,0));
+        for(int i=0;i<Cycles;i++){
+            if(vis[i][4]){
+                continue;
+            }
+            if(ans[i][0]==0){
+                break;
+            }
+            int pt=i;
+            int j=4;
+            pair<int,vector<int>> temp;
+            temp.first=i;
+            while(j>=0 && pt<Cycles){
+                if(j<=2){
+                    temp.second.push_back(5-j);
+                    vis[pt][j]=1;
+                    j--;
+                    pt++;
+                }else if(j==3){
+                    if(pt + 1 < Cycles && ans[pt+1][2]==1){
+                        temp.second.push_back(2);
+                        vis[pt][j]=1;
+                        j--;
+                        pt++;
+                    }else{
+                        temp.second.push_back(2);
+                        vis[pt][j]=1;
+                        pt++;
+                    }
+                }else{
+                    if(pt + 1 < Cycles && vis[pt+1][3]==0){
+                        temp.second.push_back(1);
+                        vis[pt][j]=1;
+                        j--;
+                        pt++;
+                    }else{
+                        temp.second.push_back(1);
+                        vis[pt][j]=1;
+                        pt++;
+                    }
+                }
+            }
+            fin.push_back(temp);
+        }
+        map<int,string> mpp={{1,"IF"},{2,"ID"},{3,"EX"},{4,"MEM"},{5,"WB"}};
+        for(auto e:fin){
+            for(int i=1;i<=e.first;i++){
+                cout<<"; ";
+            }
+            int k=0;
+            for(auto f:e.second){
+                if(f==k){
+                    cout<<";-";
+                }else{
+                    cout<<";"<<mpp[f];
+                }
+                k=f;
+            }
+            cout<<endl;
+        }
+    }
     void run() {
         int pc = 0;
         L0 = 1;
@@ -274,6 +338,7 @@ public:
         for(int cycle = 0; cycle < Cycles; cycle++) {
             if(L4.ON) {
                 cout << "WB ";
+                ans[cycle][4]=1;
                 WBSTAGE();
                 if(l==-1){
                     L4.ON=0;
@@ -284,6 +349,7 @@ public:
             if(L3.ON) {
                 cout << "MEM ";
                 MEMSTAGE();
+                ans[cycle][3]=1;
                 L4.ON = 1;
                 if(l==-1){
                     L3.ON=0;
@@ -294,6 +360,7 @@ public:
             }
             if(L2.ON) {
                 cout << "EX ";
+                ans[cycle][2]=1;
                 EXSTAGE();
                 L3.ON = 1;
                 if(l==-1){
@@ -309,19 +376,23 @@ public:
             }
             if(L1.ON) {
                 cout << "ID ";
+                ans[cycle][1]=1;
                 k = IDSTAGE();
                 L0=1;
                 if(l==-1 && k==0){
                     L1.ON=0;
                     ll--;
                 }
-            }else if(k!=-1){
+            }else{
                 L2.ON=0;
-                L0=0;
+                if(k!=-1){
+                    L0=0;
+                }
                 cout<<"- ";
             }
             if(L0 && pc < (int)instructions.size()) {
                 cout << "IF ";
+                ans[cycle][0]=1;
                 int x=IFSTAGE(pc);
                 if(x==1){
                     pc++;
@@ -343,6 +414,7 @@ public:
             }
             cout << endl;
         }
+        printpipeline();
     }
 };
 
