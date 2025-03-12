@@ -22,6 +22,7 @@ struct Latch2 {
     int regwrite;
     int memtoreg;
     int ON;
+    int branch;
 };
 
 struct Latch3 {
@@ -56,12 +57,13 @@ private:
     vector<int> MEM;
     int Cycles;
     int L0;
+    int pc;
 
 public:
     NFProcessor(const vector<string>& instrs, int cycles)
         : instructions(instrs), Cycles(cycles), REG(32, 0), MEM(1024, 0), ans(cycles,vector<int>(5,0)) {
         L1 = {0, 0};
-        L2 = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+        L2 = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
         L3 = {0, 0, 0, 0, 0, 0, 0};
         L4 = {0, 0, 0, 0};
     }
@@ -84,13 +86,21 @@ public:
             }
             pt += 4;
         }
-        v.push_back(binary);
+        v[pc]=binary;
         L1.pc = pc;
         return 1;
     }
 
     int IDSTAGE() {
         L2.pc=L1.pc;
+        if(L2.branch){
+            IFSTAGE(L1.pc);
+            L2.rd=0;
+            (L1.pc)++;
+            pc++;
+            L2.branch=0;
+        }
+        cout<<L2.pc<<" ";
         string opcode = v[L2.pc].substr(25, 7);
         if (opcode == "0110011") {
             L2.rd = stoi(v[L2.pc].substr(20, 5), nullptr, 2);
@@ -115,6 +125,7 @@ public:
             L2.rs1 = stoi(v[L2.pc].substr(12, 5), nullptr, 2);
             L2.rs2 = -1;
             if (L3.regwrite == 1 && (L3.rd == L2.rs1 || L3.rd == L2.rs2)) {
+                cout<<"r "<<L2.rs1<<" "<<L2.rs2<<" "<<L3.rd;
                 L1.ON = 0;
                 return 2;
             } else if (L4.regwrite == 1 && (L4.rd == L2.rs1 || L4.rd == L2.rs2)) {
@@ -151,14 +162,49 @@ public:
         } else if (opcode == "1100011") {
             L2.rs2 = stoi(v[L2.pc].substr(7, 5), nullptr, 2);
             L2.rs1 = stoi(v[L2.pc].substr(12, 5), nullptr, 2);
+            if (L3.regwrite == 1 && (L3.rd == L2.rs1 || L3.rd == L2.rs2)) {
+                L1.ON = 0;
+                return 2;
+            } else if (L4.regwrite == 1 && (L4.rd == L2.rs1 || L4.rd == L2.rs2)) {
+                L1.ON = 0;
+                return 1;
+            }
+            string f3 = v[L2.pc].substr(17, 3);
+            string imm12  = v[L2.pc].substr(0, 1);  
+            string imm10_5 = v[L2.pc].substr(1, 6);    
+            string imm4_1  = v[L2.pc].substr(20, 4);   
+            string imm11   = v[L2.pc].substr(24, 1);    
+            string imm_str = imm12 + imm11 + imm10_5 + imm4_1 + "0";
+            int imm_val = stoi(imm_str, nullptr, 2);
+            if (imm_str[0] == '1') {
+                imm_val -= (1 << 13);
+            }
+            
             L2.rd = -1;
+            if (f3 == "100") { // BLT
+                if (REG[L2.rs1] < REG[L2.rs2]) {
+                    L2.branch = imm_val;
+                }
+            } else if (f3 == "101") { // BGE
+                if (REG[L2.rs1] >= REG[L2.rs2]) {
+                    L2.branch = imm_val;
+                }
+            } else if (f3 == "000") { // BEQ
+                if (REG[L2.rs1] == REG[L2.rs2]) {
+                    L2.branch = imm_val;
+                }
+            } else if (f3 == "001") { // BNE
+                if (REG[L2.rs1] != REG[L2.rs2]) {
+                    L2.branch = imm_val;
+                }
+            }
             L2.aluop = 1;
             L2.alusrc = 0;
             L2.memread = 0;
             L2.memwrite = 0;
             L2.memtoreg = 0;
             L2.regwrite = 0;
-        } else if (opcode == "1101111") {
+        }else if (opcode == "1101111") {
             L2.rd = stoi(v[L2.pc].substr(20, 5), nullptr, 2);
             L2.rs1 = -1;
             L2.rs2 = -1;
@@ -186,11 +232,19 @@ public:
             L2.memtoreg = 0;
             L2.regwrite = 1;
         }
+        cout<<L2.rd<<"oops";
         return 0;
     }
 
     void EXSTAGE() {
+        if(L2.branch){
+            cout<<"h";
+            L2.rd=0;
+            L3.rd=0;
+            return;
+        }
         L3.rd = L2.rd;
+        cout<<L3.rd<<" ";
         L3.pc = L2.pc;
         L3.memtoreg = L2.memtoreg;
         L3.memread = L2.memread;
@@ -235,8 +289,15 @@ public:
     }
 
     void MEMSTAGE() {
+        if(L2.branch){
+            cout<<"h";
+            L3.rd=0;
+            L2.rd=0;
+            return;
+        }
         L4.rd = L3.rd;
         L3.rd=0;
+        cout<<L3.rd<<" "<<L2.rd<<" ";
         L4.regwrite = L3.regwrite;
         L4.memtoreg = L3.memtoreg;
         L3.memtoreg=0;
@@ -260,6 +321,11 @@ public:
     }
 
     void WBSTAGE() {
+        if(L2.branch){
+            L3.rd=0;
+            L2.rd=0;
+            return;
+        }
         if (L4.regwrite && L4.rd >= 0 && L4.rd < 32 && L4.res != nullptr) {
             REG[L4.rd] = *L4.res;
         }
@@ -330,12 +396,14 @@ public:
         }
     }
     void run() {
-        int pc = 0;
+        pc = 0;
         L0 = 1;
         int k=-1;
         int l=0;
         int ll=0;
+        v.resize(instructions.size(), "");
         for(int cycle = 0; cycle < Cycles; cycle++) {
+            cout<<L2.branch<<" ";
             if(L4.ON) {
                 cout << "WB ";
                 ans[cycle][4]=1;
@@ -395,7 +463,14 @@ public:
                 ans[cycle][0]=1;
                 int x=IFSTAGE(pc);
                 if(x==1){
-                    pc++;
+                    if(L2.branch){
+                        pc--;
+                        pc+=(L2.branch/4);
+                        L1.pc=pc;
+                    }
+                    else{
+                        pc++;
+                    }
                     L1.ON=1;
                 }
                 if(pc==instructions.size()){
@@ -423,12 +498,13 @@ int main() {
         "00002083", // lw x1, 0(x4)
         "19022103", // lw x2, 400(x4)
         "002081b3", // add x3, x1, x2
+        "00418463", // beq x3, x4, +8
         "00322023", // sw x3, 0(x4)
         "ffc20213", // addi x4, x4, -4
-        "004302b3"  // add x5, x6, x4
+        "00428333"  // add x5, x6, x4
     };
 
-    NFProcessor processor(instructions, 16);
+    NFProcessor processor(instructions, 20);
     processor.run();
     return 0;
 }
