@@ -46,7 +46,7 @@ struct Latch4 {
     int* res;
 };
 
-class NFProcessor {
+class FProcessor {
 private:
     Latch1 L1;
     Latch2 L2;
@@ -62,7 +62,7 @@ private:
     int pc;
 
 public:
-    NFProcessor(const vector<string>& instrs, int cycles)
+    FProcessor(const vector<string>& instrs, int cycles)
         : instructions(instrs), Cycles(cycles), REG(32, 0), MEM(1024, 1), ans(cycles,vector<int>(5,0)) {
         L1 = {0, 0};
         L2 = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
@@ -505,16 +505,12 @@ public:
 
 int main() {
     vector<string> instructions = {
-        "00002083", // lw x1, 0(x4)
-        "19022103", // lw x2, 400(x4)
-        "002081b3", // add x3, x1, x2
-        "00418463", // beq x3, x4, +8
-        "00322023", // sw x3, 0(x4)
-        "ffc20213", // addi x4, x4, -4
-        "00428333"  // add x5, x6, x4
+        "00022083", // lw x1, 0(x4)
+        "00208113",  // addi x2, x1, 2   (depends on the value loaded into x1)
+        "00400193", // addi x3, x0, 4   (dummy instruction; does not use x1)
     };
 
-    NFProcessor processor(instructions, 20);
+    FProcessor processor(instructions, 20);
     processor.run();
     return 0;
 }
