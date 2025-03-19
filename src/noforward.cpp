@@ -35,6 +35,7 @@ struct Latch3 {
     int ON;
     int pc;
     int rs2;
+    int branch;
 };
 
 struct Latch4 {
@@ -43,6 +44,7 @@ struct Latch4 {
     int regwrite;
     int ON;
     int rs2;
+    int branch;
     int* res;
 };
 
@@ -66,8 +68,8 @@ public:
         : instructions(instrs), Cycles(cycles), REG(32, 0), MEM(1024, 1), ans(cycles,vector<int>(5,0)) {
         L1 = {0, 0};
         L2 = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-        L3 = {0, 0, 0, 0, 0, 0, 0, 0};
-        L4 = {0, 0, 0, 0, 0};
+        L3 = {0, 0, 0, 0, 0, 0, 0, 0, 0};
+        L4 = {0, 0, 0, 0, 0, 0};
     }
 
     int IFSTAGE(int pc) {
@@ -96,7 +98,6 @@ public:
     int IDSTAGE() {
         L2.pc=L1.pc;
         if(L2.branch){
-            cout<<"IFf"<<endl;
             IFSTAGE(L1.pc);
             L2.rd=0;
             (L1.pc)++;
@@ -242,6 +243,8 @@ public:
             L3.rd=0;
             return;
         }
+        L3.branch=L2.branch;
+        L2.branch=0;
         L3.rd = L2.rd;
         L3.rs2=L2.rs2;
         L3.pc = L2.pc;
@@ -288,11 +291,13 @@ public:
     }
 
     void MEMSTAGE() {
-        if(L2.branch){
+        if(L3.branch){
             L3.rd=0;
             L2.rd=0;
             return;
         }
+        L4.branch=L3.branch;
+        L3.branch=0;
         L4.rd = L3.rd;
         L4.rs2=L3.rs2;
         L3.rs2=0;
@@ -311,7 +316,6 @@ public:
             if (L3.result >= 0 && L3.result < (int)MEM.size() && 
                L4.rs2 >= 0 && L4.rs2 < 32) {
                 MEM[L3.result] = REG[L4.rs2];
-                cout<<L3.result<<" "<<L4.rs2;
             }
             L4.res = nullptr;
         } else {
@@ -321,11 +325,12 @@ public:
     }
 
     void WBSTAGE() {
-        if(L2.branch){
+        if(L4.branch){
             L3.rd=0;
             L2.rd=0;
             return;
         }
+        L4.branch=0;
         if (L4.regwrite && L4.rd >= 0 && L4.rd < 32 && L4.res != nullptr) {
             REG[L4.rd] = *L4.res;
         }
@@ -502,9 +507,13 @@ public:
 
 int main() {
     vector<string> instructions = {
-        "00022083", // lw x1, 0(x4)
-        "00208113",  // addi x2, x1, 2   (depends on the value loaded into x1)
-        "00400193", // addi x3, x0, 4   (dummy instruction; does not use x1)
+        "00002083", // lw x1, 0(x4)
+        "19022103", // lw x2, 400(x4)
+        "002081b3", // add x3, x1, x2
+        "00418463", // beq x3, x4, +8
+        "00322023", // sw x3, 0(x4)
+        "ffc20213", // addi x4, x4, -4
+        "00428333"  // add x6, x4, x5
     };
 
     NFProcessor processor(instructions, 20);

@@ -23,6 +23,7 @@ struct Latch2 {
     int memtoreg;
     int ON;
     int branch;
+    int temp;
 };
 
 struct Latch3 {
@@ -35,6 +36,7 @@ struct Latch3 {
     int ON;
     int pc;
     int rs2;
+    int branch;
 };
 
 struct Latch4 {
@@ -43,6 +45,7 @@ struct Latch4 {
     int regwrite;
     int ON;
     int rs2;
+    int branch;
     int* res;
 };
 
@@ -65,9 +68,9 @@ public:
     FProcessor(const vector<string>& instrs, int cycles)
         : instructions(instrs), Cycles(cycles), REG(32, 0), MEM(1024, 1), ans(cycles,vector<int>(5,0)) {
         L1 = {0, 0};
-        L2 = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-        L3 = {0, 0, 0, 0, 0, 0, 0, 0};
-        L4 = {0, 0, 0, 0, 0};
+        L2 = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+        L3 = {0, 0, 0, 0, 0, 0, 0, 0, 0};
+        L4 = {0, 0, 0, 0, 0, 0};
     }
 
     int IFSTAGE(int pc) {
@@ -96,7 +99,7 @@ public:
     int IDSTAGE() {
         L2.pc=L1.pc;
         if(L2.branch){
-            cout<<"IFf"<<endl;
+            cout<<"fuck";
             IFSTAGE(L1.pc);
             L2.rd=0;
             (L1.pc)++;
@@ -112,9 +115,6 @@ public:
             if (L3.memread == 1 && (L3.rd == L2.rs1 || L3.rd == L2.rs2)) {
                 L1.ON = 0;
                 return 2;
-//            } else if (L4.regwrite == 1 && (L4.rd == L2.rs1 || L4.rd == L2.rs2)) {
-//                L1.ON = 0;
-//                return 1;
             }
             L2.aluop = 2;
             L2.alusrc = 0;
@@ -129,9 +129,6 @@ public:
             if (L3.memread == 1 && (L3.rd == L2.rs1)) {
                 L1.ON = 0;
                 return 2;
-//            } else if (L4.regwrite == 1 && (L4.rd == L2.rs1 || L4.rd == L2.rs2)) {
-//                L1.ON = 0;
-//                return 1;
             }
             L2.aluop = 0;
             L2.alusrc = 1;
@@ -150,9 +147,6 @@ public:
             if (L3.memread == 1 && (L3.rd == L2.rs1 || L3.rd == L2.rs2)) {
                 L1.ON = 0;
                 return 2;
-//            } else if (L4.regwrite == 1 && (L4.rd == L2.rs1 || L4.rd == L2.rs2)) {
-//                L1.ON = 0;
-//                return 1;
             }
             L2.aluop = 0;
             L2.alusrc = 1;
@@ -163,12 +157,10 @@ public:
         } else if (opcode == "1100011") {
             L2.rs2 = stoi(v[L2.pc].substr(7, 5), nullptr, 2);
             L2.rs1 = stoi(v[L2.pc].substr(12, 5), nullptr, 2);
-            if (L3.memread == 1 && (L3.rd == L2.rs1 || L3.rd == L2.rs2)) {
+            if (L2.temp!=0 && (L2.temp==L2.rs1 || L2.temp==L2.rs2)) {
                 L1.ON = 0;
+                L2.temp=0;
                 return 2;
-//            } else if (L4.regwrite == 1 && (L4.rd == L2.rs1 || L4.rd == L2.rs2)) {
-//                L1.ON = 0;
-//                return 1;
             }
             string f3 = v[L2.pc].substr(17, 3);
             string imm12  = v[L2.pc].substr(0, 1);
@@ -180,22 +172,24 @@ public:
             if (imm_str[0] == '1') {
                 imm_val -= (1 << 13);
             }
+            int op1 = (L3.regwrite && L3.rd == L2.rs1) ? L3.result : ((L4.regwrite && L4.rd == L2.rs1 && L4.res != nullptr) ? *L4.res : REG[L2.rs1]);
+            int op2 = (L3.regwrite && L3.rd == L2.rs2) ? L3.result : ((L4.regwrite && L4.rd == L2.rs2 && L4.res != nullptr) ? *L4.res : REG[L2.rs2]);
 
-            L2.rd = -1;
+            L2.rd = 0;
             if (f3 == "100") { // BLT
-                if (REG[L2.rs1] < REG[L2.rs2]) {
+                if (op1<op2) {
                     L2.branch = imm_val;
                 }
             } else if (f3 == "101") { // BGE
-                if (REG[L2.rs1] >= REG[L2.rs2]) {
+                if (op1>=op2) {
                     L2.branch = imm_val;
                 }
             } else if (f3 == "000") { // BEQ
-                if (REG[L2.rs1] == REG[L2.rs2]) {
+                if (op1==op2) {
                     L2.branch = imm_val;
                 }
             } else if (f3 == "001") { // BNE
-                if (REG[L2.rs1] != REG[L2.rs2]) {
+                if (op1!=op2) {
                     L2.branch = imm_val;
                 }
             }
@@ -205,6 +199,7 @@ public:
             L2.memwrite = 0;
             L2.memtoreg = 0;
             L2.regwrite = 0;
+            L2.temp=0;
         }else if (opcode == "1101111") {
             L2.rd = stoi(v[L2.pc].substr(20, 5), nullptr, 2);
             L2.rs1 = -1;
@@ -222,9 +217,6 @@ public:
             if (L3.memread == 1 && (L3.rd == L2.rs1)) {
                 L1.ON = 0;
                 return 2;
-//            } else if (L4.regwrite == 1 && (L4.rd == L2.rs1 || L4.rd == L2.rs2)) {
-//                L1.ON = 0;
-//                return 1;
             }
             L2.memread = 0;
             L2.alusrc = 1;
@@ -242,7 +234,11 @@ public:
             L3.rd=0;
             return;
         }
+        L3.branch=L2.branch;
+        L2.branch=0;
         L3.rd = L2.rd;
+        L2.temp=L2.rd;
+        L2.rd=0;
         L3.rs2=L2.rs2;
         L3.pc = L2.pc;
         L3.memtoreg = L2.memtoreg;
@@ -254,6 +250,7 @@ public:
             string f7 = v[L3.pc].substr(0, 7);
             int op1 = (L3.regwrite && L3.rd == L2.rs1) ? L3.result : ((L4.regwrite && L4.rd == L2.rs1 && L4.res != nullptr) ? *L4.res : REG[L2.rs1]);
             int op2 = (L3.regwrite && L3.rd == L2.rs2) ? L3.result : ((L4.regwrite && L4.rd == L2.rs2 && L4.res != nullptr) ? *L4.res : REG[L2.rs2]);
+            cout<<op1<<op2;
             if (f3 == "000" && f7 == "0000000") {
                 L3.result = op1 + op2;
             } else if (f3 == "000" && f7 == "0100000") {
@@ -291,11 +288,13 @@ public:
     }
 
     void MEMSTAGE() {
-        if(L2.branch){
+        if(L3.branch){
             L3.rd=0;
             L2.rd=0;
             return;
         }
+        L4.branch=L3.branch;
+        L3.branch=0;
         L4.rd = L3.rd;
         L4.rs2=L3.rs2;
         L3.rs2=0;
@@ -314,7 +313,6 @@ public:
             if (L3.result >= 0 && L3.result < (int)MEM.size() &&
                L4.rs2 >= 0 && L4.rs2 < 32) {
                 MEM[L3.result] = REG[L4.rs2];
-                cout<<L3.result<<" "<<L4.rs2;
             }
             L4.res = nullptr;
         } else {
@@ -324,11 +322,13 @@ public:
     }
 
     void WBSTAGE() {
-        if(L2.branch){
+        if(L4.branch){
             L3.rd=0;
             L2.rd=0;
             return;
         }
+        L4.branch=0;
+        cout<<L4.rd;
         if (L4.regwrite && L4.rd >= 0 && L4.rd < 32 && L4.res != nullptr) {
             REG[L4.rd] = *L4.res;
         }
@@ -443,7 +443,7 @@ public:
                 cout<<"- ";
                 L3.ON = 0;
             }
-            if(ll>-2 && k!=-1 && !(L3.regwrite == 1 && (L3.rd == L2.rs1 || L3.rd == L2.rs2))||(L4.regwrite == 1 && (L4.rd == L2.rs1 || L4.rd == L2.rs2))){
+            if(ll>-2 && k!=-1 && !(L3.memread == 1 && (L3.rd == L2.rs1 || L3.rd == L2.rs2))){
                 L1.ON=1;
             }
             if(L1.ON) {
@@ -499,15 +499,19 @@ public:
             cout << endl;
         }
         printpipeline();
-        cout<<REG[0]<<" "<<REG[1]<<" "<<REG[2]<<" "<<REG[3]<<" "<<REG[4]<<" "<<MEM[1];
+        cout<<REG[0]<<" "<<REG[1]<<" "<<REG[2]<<" "<<REG[3]<<" "<<REG[4]<<" "<<REG[5]<<" "<<REG[6]<<" "<<MEM[1];
     }
 };
 
 int main() {
     vector<string> instructions = {
-        "00022083", // lw x1, 0(x4)
-        "00208113",  // addi x2, x1, 2   (depends on the value loaded into x1)
-        "00400193", // addi x3, x0, 4   (dummy instruction; does not use x1)
+        "00002083", // lw x1, 0(x4)
+        "19022103", // lw x2, 400(x4)
+        "002081b3", // add x3, x1, x2
+        "00418463", // beq x3, x4, +8
+        "00322023", // sw x3, 0(x4)
+        "ffc20213", // addi x4, x4, -4
+        "00428333"  // add x6, x4, x5
     };
 
     FProcessor processor(instructions, 20);
