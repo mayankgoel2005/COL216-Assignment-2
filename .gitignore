@@ -4,3 +4,5 @@ forward
 noforward
 src/noforward
 src/forward
+forward.dSYM
+noforward.dSYM
