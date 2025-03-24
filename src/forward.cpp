@@ -16,6 +16,7 @@
 #include <chrono>
 #include <random>
 #include <fstream>
+#include <sstream>
 
 using namespace std;
 
@@ -604,18 +605,29 @@ public:
 };
 
 int main() {
-    vector<string> instructions = {
-        "00000293", // addi x5 x0 0
-        "00a28333", // add x6 x5 x10
-        "00030303", // lb x6 0 x6
-        "00030663", // beq x6 x0 12
-        "00128293", // addi x5 x5 1
-        "ff1ff06f", // jal x0 −16
-        "00028513", // addi x10 x5 0
-        "00008067" // jalr x0 x1 0
-    };
+    vector<string> opcodes;
+    vector<string> instructions;
 
-    FProcessor processor(instructions, 11);
+    ifstream inputFile("../inputfiles/strlen.txt");
+    if (!inputFile.is_open()) {
+        cerr << "Error: Could not open input file." << endl;
+        return 1;
+    }
+
+    string line;
+    while (getline(inputFile, line)) {
+        istringstream iss(line);
+        string firstNumber, opcode, instruction;
+        iss >> firstNumber >> opcode; // Ignore the first number and read the opcode
+        getline(iss, instruction);   // Read the rest of the line as the instruction
+        opcodes.push_back(opcode);
+        instructions.push_back(instruction);
+    }
+
+    inputFile.close();
+
+    FProcessor processor(opcodes, 11);
     processor.run();
+
     return 0;
 }
