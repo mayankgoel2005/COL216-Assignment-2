@@ -1,0 +1,26 @@
+- - - - 0ohIF 0 0-1-1-1-11oh
+- - - ID 0 10ohIF 1 10-1-1-11oh
+- - EX 0 2ID 1 20ohIF 2 210-1-10oh
+- MEM 0 3- ID 1 30ohIF 2 31-10-10oh
+WB 0 4- - ID 1 40ohIF 2 41-1-101oh
+- - EX 1 5ID 2 50ohIF 3 521-1-10oh
+- MEM 1 6- ID 2 60ohIF 3 62-11-10oh
+WB 1 7- - ID 2 70ohIF 3 72-1-111oh
+- - EX 2 8ID 3 8hey0ohIF 4 832-1-10oh
+- MEM 2 9- ID 3 9heyoops0ohIF 4 93-12-10oh
+WB 2 10- - ID 3 10hey60100ohIF 4 103-1-121oh
+- - EX 3 11ID 4 110ohIF 5 1143-1-11oh
+- MEM 3 12EX 4 12ID 5 120ohIF 6 12543-11oh
+WB 3 13MEM 4 13EX 5 13-165ID 6 131ohIFj 7 1365431oh16
+WB 4 14MEM 5 14EX nopID nop0ohIF 1 1476541oh
+WB 5 15MEM nopEX nopID 1 150ohIF 2 1517651oh
+WB nopMEM nopEX 1 16ID 2 160ohIF 3 1621760oh
+;IF;ID;EX;MEM;WB; ; ; ; ; ; ; ; ; ; ; 
+; ;IF;ID;-;-;EX;MEM;WB; ; ; ; ; ; ;IF;ID
+;EX; ;IF;-;-;ID;-;-;EX;MEM;WB; ; ; ; ;IF
+;ID; ; ; ; ;IF;-;-;ID;-;-;EX;MEM;WB; ; 
+;IF; ; ; ; ; ; ; ;IF;-;-;ID;EX;MEM;WB; 
+; ; ; ; ; ; ; ; ; ; ; ;IF;ID;EX;MEM;WB
+; ; ; ; ; ; ; ; ; ; ; ; ;IF;ID; ; 
+; ; ; ; ; ; ; ; ; ; ; ; ; ;IF; ; 
+6 0 0 0 2 1
