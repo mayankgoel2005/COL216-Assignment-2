@@ -667,6 +667,20 @@ int main(int argc, char* argv[]) {
     string inputFilePath = argv[1];
     int cycleCount = atoi(argv[2]);
 
+    // Extract the base filename for the output
+    string inputFileName = inputFilePath;
+    size_t lastSlash = inputFileName.find_last_of("/\\");
+    if (lastSlash != string::npos) {
+        inputFileName = inputFileName.substr(lastSlash + 1);
+    }
+    size_t lastDot = inputFileName.find_last_of(".");
+    if (lastDot != string::npos) {
+        inputFileName = inputFileName.substr(0, lastDot);
+    }
+
+    // Create output file path
+    string outputFilePath = "../outputfiles/" + inputFileName + "_noforward_out.txt";
+
     vector<string> opcodes;
     vector<string> instructions;
 
@@ -689,9 +703,25 @@ int main(int argc, char* argv[]) {
 
     inputFile.close();
 
-    // Use the parsed cycle count
+    // Redirect stdout to the output file
+    ofstream outputFile(outputFilePath);
+    if (!outputFile.is_open()) {
+        cerr << "Error: Could not open output file: " << outputFilePath << endl;
+        return 1;
+    }
+
+    // Save the original buffer
+    streambuf* oldCoutBuffer = cout.rdbuf();
+    cout.rdbuf(outputFile.rdbuf());
+
     NFProcessor processor(opcodes, cycleCount);
     processor.run();
+
+    // Restore the original buffer
+    cout.rdbuf(oldCoutBuffer);
+    outputFile.close();
+
+    cout << "Output written to " << outputFilePath << endl;
 
     return 0;
 }
