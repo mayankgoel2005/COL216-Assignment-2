@@ -1,8 +1,22 @@
 #include <iostream>
 #include <vector>
+#include <algorithm>
+#include <iomanip>
+#include <set>
+#include <unordered_set>
+#include <queue>
+#include <stack>
+#include <cmath>
 #include <string>
-#include <cstdlib>
-#include <bits/stdc++.h>
+#include <cstring>
+#include <climits>
+#include <bitset>
+#include <map>
+#include <unordered_map>
+#include <chrono>
+#include <random>
+#include <fstream>
+
 using namespace std;
 
 struct Latch1 {
@@ -78,7 +92,7 @@ public:
         : instructions(instrs), Cycles(cycles), REG(32, 0), MEM(1024, 1), ans(instrs.size(),vector<int>(cycles,0)) {
         L1 = {-1, 0, 0};
         L2 = {-1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-        L3 = {0, 0, 0, 0, 0, 0, 0, -1, 0, 0, 0, 0};
+        L3 = {-1, 0, 0, 0, 0, 0, 0, -1, 0, 0, 0, 0};
         L4 = {0, 0, 0, 0, 0, 0, -1, 0, 0};
     }
 
@@ -177,12 +191,9 @@ public:
         } else if (opcode == "1100011") {
             L2.rs2 = stoi(v[L2.pc].substr(7, 5), nullptr, 2);
             L2.rs1 = stoi(v[L2.pc].substr(12, 5), nullptr, 2);
-            if (L3.regwrite && (L3.rd==L2.rs1 || L3.rd==L2.rs2)) {
+            if (L3.memread && (L3.rd==L2.rs1 || L3.rd==L2.rs2)) {
+                cout<<L3.rd;
                 L1.ON = 0;
-                return 2;
-            }
-            if(L4.memtoreg==1 && (L4.rd==L2.rs1)||(L4.rd==L2.rs2)){
-                L1.ON=0;
                 return 2;
             }
             string f3 = v[L2.pc].substr(17, 3);
@@ -197,7 +208,7 @@ public:
             }
             int op1 = (L3.regwrite && L3.rd == L2.rs1) ? L3.result : ((L4.regwrite && L4.rd == L2.rs1 && L4.res != -1) ? L4.res : REG[L2.rs1]);
             int op2 = (L3.regwrite && L3.rd == L2.rs2) ? L3.result : ((L4.regwrite && L4.rd == L2.rs2 && L4.res != -1) ? L4.res : REG[L2.rs2]);
-
+            cout<<L3.rd<<L2.rs1<<L2.rs2;
             L2.rd = 0;
             if (f3 == "100") { // BLT
                 if (op1<op2) {
@@ -364,7 +375,7 @@ public:
         L4.rs2 = L3.rs2;
         L4.pc = L3.pc;
         L3.rs2 = 0;
-        L3.rd = 0;
+        L3.rd = -1;
         L4.regwrite = L3.regwrite;
         L4.memtoreg = L3.memtoreg;
         L3.memtoreg = 0;
@@ -543,6 +554,9 @@ public:
                 }else if(L3.j){
                     cout<<"IFj ";
                     L2.nop=1;
+                    k=0;
+                    L0=1;
+                    L1.ON=1;
                     L3.nop=1;
                 }else{
                     cout<<"IFb";
@@ -593,7 +607,7 @@ int main() {
     vector<string> instructions = {
         "00000293", // addi x5 x0 0
         "00a28333", // add x6 x5 x10
-        "00600313", // lb x6 0 x6
+        "00030303", // lb x6 0 x6
         "00030663", // beq x6 x0 12
         "00128293", // addi x5 x5 1
         "ff1ff06f", // jal x0 −16
