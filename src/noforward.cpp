@@ -90,12 +90,18 @@ private:
 
 public:
     NFProcessor(const vector<string>& instrs, int cycles)
-        : instructions(instrs), Cycles(cycles+1), REG(32, 0), MEM(1024, 1), ans(instrs.size(),vector<int>(cycles+1,0)) {
+        : REG(32, 0),          // 5th declared member
+          instructions(instrs),// 6th
+          ans(instrs.size(), vector<int>(cycles+1, 0)),  // 8th
+          MEM(1024, 1),        // 9th
+          Cycles(cycles+1) {   // 10th
+        // Body assignments remain unchanged
         L1 = {-1, 0, 0};
         L2 = {-1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
         L3 = {0, 0, 0, 0, 0, 0, 0, -1, 0, 0, 0, 0};
         L4 = {0, 0, 0, 0, 0, 0, -1, 0, 0};
     }
+
 
     int IFSTAGE(int pc) {
         cout<<pc<<" "<<c;
@@ -534,7 +540,7 @@ public:
         L0 = 1;
         int k=-1;
         int l=0;
-        int ll=0;
+        // int ll=0;
         v.resize(instructions.size(), "");
         for(int cycle = 0; cycle < Cycles+1; cycle++) {
             c=cycle;
@@ -629,7 +635,7 @@ public:
                     L1.pc=-1;
                     L2.nop=1;
                 }
-                if(pc==instructions.size()){
+                if(pc==static_cast<int>(instructions.size())){
                     l=-1;
                 }
             }else{
@@ -650,13 +656,24 @@ public:
     }
 };
 
-int main() {
+int main(int argc, char* argv[]) {
+    // Check if enough arguments are provided
+    if (argc < 3) {
+        cerr << "Usage: " << argv[0] << " <input_file> <cycle_count>" << endl;
+        return 1;
+    }
+
+    // Parse arguments
+    string inputFilePath = argv[1];
+    int cycleCount = atoi(argv[2]);
+
     vector<string> opcodes;
     vector<string> instructions;
 
-    ifstream inputFile("../inputfiles/strlen.txt");
+    // Open the specified input file
+    ifstream inputFile(inputFilePath);
     if (!inputFile.is_open()) {
-        cerr << "Error: Could not open input file." << endl;
+        cerr << "Error: Could not open input file: " << inputFilePath << endl;
         return 1;
     }
 
@@ -672,7 +689,8 @@ int main() {
 
     inputFile.close();
 
-    NFProcessor processor(opcodes, 11);
+    // Use the parsed cycle count
+    NFProcessor processor(opcodes, cycleCount);
     processor.run();
 
     return 0;

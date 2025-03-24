@@ -89,13 +89,18 @@ private:
     int nope;
 
 public:
-    FProcessor(const vector<string>& instrs, int cycles)
-        : instructions(instrs), Cycles(cycles), REG(32, 0), MEM(1024, 1), ans(instrs.size(),vector<int>(cycles,0)) {
-        L1 = {-1, 0, 0};
-        L2 = {-1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-        L3 = {-1, 0, 0, 0, 0, 0, 0, -1, 0, 0, 0, 0};
-        L4 = {0, 0, 0, 0, 0, 0, -1, 0, 0};
-    }
+FProcessor(const vector<string>& instrs, int cycles)
+    : L1{-1, 0, 0},
+      L2{-1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+      L3{-1, 0, 0, 0, 0, 0, 0, -1, 0, 0, 0, 0},
+      L4{0, 0, 0, 0, 0, 0, -1, 0, 0},
+      REG(32, 0),
+      instructions(instrs),
+      ans(instrs.size(), vector<int>(cycles, 0)),
+      MEM(1024, 1),
+      Cycles(cycles) {
+    // Constructor body (if any)
+}
 
     int IFSTAGE(int pc) {
         cout<<pc<<" "<<c;
@@ -490,7 +495,7 @@ public:
         L0 = 1;
         int k=-1;
         int l=0;
-        int ll=0;
+        // int ll=0;
         v.resize(instructions.size(), "");
         for(int cycle = 0; cycle < Cycles; cycle++) {
             c=cycle;
@@ -583,7 +588,7 @@ public:
                     L2.nop=1;
                     L1.pc=-1;
                 }
-                if(pc==instructions.size()){
+                if(pc==static_cast<int>(instructions.size())){
                     l=-1;
                 }
             }else{
@@ -604,13 +609,26 @@ public:
     }
 };
 
-int main() {
+int main(int argc, char* argv[]) {
+    // Default values
+    string inputFilePath = "../inputfiles/strlen.txt";
+    int cycleCount = 11;
+
+    // Parse command line arguments
+    if (argc >= 2) {
+        inputFilePath = argv[1];
+    }
+
+    if (argc >= 3) {
+        cycleCount = atoi(argv[2]);
+    }
+
     vector<string> opcodes;
     vector<string> instructions;
 
-    ifstream inputFile("../inputfiles/strlen.txt");
+    ifstream inputFile(inputFilePath);
     if (!inputFile.is_open()) {
-        cerr << "Error: Could not open input file." << endl;
+        cerr << "Error: Could not open input file: " << inputFilePath << endl;
         return 1;
     }
 
@@ -626,7 +644,7 @@ int main() {
 
     inputFile.close();
 
-    FProcessor processor(opcodes, 11);
+    FProcessor processor(opcodes, cycleCount);
     processor.run();
 
     return 0;

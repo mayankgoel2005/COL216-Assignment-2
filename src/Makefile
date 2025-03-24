@@ -1,18 +1,15 @@
-# Compiler and flags
-CC = g++
-CFLAGS = -Wall -std=c++11
+CXX = g++
+CXXFLAGS = -std=c++11 -Wall -Wextra
 
-# Default target builds both executables
-all: noforward forward
+all: forward noforward
 
-# Build the non-forwarding processor executable
-noforward: noforward.cpp
-	$(CC) $(CFLAGS) -o noforward noforward.cpp
+forward: forward.cpp forward.hpp
+	$(CXX) $(CXXFLAGS) -o forward forward.cpp
 
-# Build the forwarding processor executable
-forward: forward.cpp
-	$(CC) $(CFLAGS) -o forward forward.cpp
+noforward: noforward.cpp noforward.hpp
+	$(CXX) $(CXXFLAGS) -o noforward noforward.cpp
 
-# Clean up generated files
 clean:
-	rm -f noforward forward
+	rm -f forward noforward *.o
+
+.PHONY: all clean
