@@ -92,7 +92,7 @@ public:
 FProcessor(const vector<string>& instrs, int cycles)
     : L1{-1, 0, 0},
       L2{-1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-      L3{-1, 0, 0, 0, 0, 0, 0, -1, 0, 0, 0, 0},
+      L3{-1, 0, 0, 0, 0, 0, 0, -1, 0, 0, 0, -1},
       L4{0, 0, 0, 0, 0, 0, -1, 0, 0},
       REG(32, 0),
       instructions(instrs),
@@ -107,7 +107,6 @@ FProcessor(const vector<string>& instrs, int cycles)
         cout<<L2.pc<<L3.pc<<L4.pc<<pcc;
         if(pc!=-1 &&(L2.pc==pc || L3.pc==pc || L4.pc==pc || pc==pcc)){
             cout<<"yes"<<L1.pc;
-            L0=0;
             return -1;
         }
         ans[pc][c]=1;
@@ -288,6 +287,7 @@ FProcessor(const vector<string>& instrs, int cycles)
         L3.regwrite = L2.regwrite;
     
         string opcode = v[L3.pc].substr(25, 7);
+        cout<<opcode;
         string f3 = v[L3.pc].substr(17, 3);
         string f7 = v[L3.pc].substr(0, 7);
     
@@ -355,6 +355,7 @@ FProcessor(const vector<string>& instrs, int cycles)
             if (inst[0] == '1') imm -= (1 << 21);
             L3.result = L3.pc + 1;
             L3.j = L3.pc + imm / 4;
+            cout<<"hi";
         }    
 
         else if (opcode == "1100111") { //jalr
@@ -488,6 +489,7 @@ FProcessor(const vector<string>& instrs, int cycles)
         return;
     }
     void run() {
+        cout<<"fuck";
         REG[4]=2;
         pc = 0;
         pcc=-1;
@@ -495,6 +497,7 @@ FProcessor(const vector<string>& instrs, int cycles)
         L0 = 1;
         int k=-1;
         int l=0;
+        int x;
         // int ll=0;
         v.resize(instructions.size(), "");
         for(int cycle = 0; cycle < Cycles; cycle++) {
@@ -509,6 +512,7 @@ FProcessor(const vector<string>& instrs, int cycles)
             }else{
                 pcc=-1;
                 cout<<"- ";
+                nope=0;
             }
             if(L3.ON) {
                 cout << "MEM ";
@@ -522,6 +526,7 @@ FProcessor(const vector<string>& instrs, int cycles)
                 cout<<"- ";
                 L4.ON = 0;
                 L4.pc=-1;
+                L4.nop=0;
             }
             if(L2.ON) {
                 cout << "EX ";
@@ -535,8 +540,9 @@ FProcessor(const vector<string>& instrs, int cycles)
                 cout<<"- ";
                 L3.ON = 0;
                 L3.pc=-1;
+                L3.nop=0;
             }
-            if(!L1.ded && k!=-1){
+            if(L1.ded==0 && k!=-1){
                 L1.ON=1;
             }
             if(L1.ON) {
@@ -548,32 +554,40 @@ FProcessor(const vector<string>& instrs, int cycles)
                 }
             }else{
                 L2.ON=0;
-                if(k!=-1){
+                cout<<x;
+                if(k!=-1 && x!=-1){
                     L0=0;
                 }
                 cout<<"- ";
                 L2.pc=-1;
+                L2.nop=0;
             }
+            cout<<pc<<L1.ded;
             if(L0 && pc < (int)instructions.size()) {
-                if(!L2.branch && !L3.j){
+                if(!L2.branch && L3.j==-1){
                     cout <<"IF ";
-                }else if(L3.j){
+                }else if(L3.j!=-1){
                     cout<<"IFj ";
-                    L2.nop=1;
+                    if(L1.ded==0){
+                        L2.nop=1;
+                    }
                     k=0;
                     L0=1;
                     L1.ON=1;
-                    L3.nop=1;
+                    if(L2.ded==0){
+                        L3.nop=1;
+                    }
                 }else{
                     cout<<"IFb";
                     L2.nop=1;
                 }
-                int x=IFSTAGE(pc);
+                x=IFSTAGE(pc);
+                cout<<L0;
                 if(x==1){
-                    if(L3.j){
+                    if(L3.j!=-1){
                         cout<<pc<<L3.result;
                         pc=L3.j;
-                        L3.j=0;
+                        L3.j=-1;
                     }
                     else if(L2.branch){
                         pc--;
@@ -593,6 +607,48 @@ FProcessor(const vector<string>& instrs, int cycles)
                 }
             }else{
                 L1.ON=0;
+                if(pc==instructions.size()){
+                    if(L3.j!=-1){
+                        cout<<"oops";
+                        if(L1.ded==0){
+                            L2.nop=1;
+                        }
+                        k=-1;
+                        L0=1;
+                        if(L1.ded==0){
+                            L1.ON=1;
+                        }
+                        if(L2.ded==0){
+                            L3.nop=1;
+                        }
+                        pc=L3.j;
+                        L3.j=-1;
+                        l=0;
+                        L1.ded=0;
+                        L2.ded=0;
+                        L3.ded=0;
+                        L4.ded=0;
+                        cout<<pc;
+                    }else if(L2.branch){
+                        if(L1.ded==0){
+                            L2.nop=1;
+                            k=-1;
+                            L0=1;
+                            if(L1.ded==0){
+                                L1.ON=1;
+                            }
+                            pc--;
+                            pc=pc+(L2.branch/4);
+                            L2.branch=0;
+                            l=0;
+                            L1.ded=0;
+                            L2.ded=0;
+                            L3.ded=0;
+                            L4.ded=0;
+                        }
+                    }
+                    cout<<"h";
+                }
                 cout<<"- ";
             }
             if(k == 2 || k == 1||k==-1) {
