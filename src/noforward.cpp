@@ -45,7 +45,7 @@ struct Latch2 { //id-ex latch
 
 struct Latch3 { //ex-mem 
     int rd;
-    int result;
+    long long int result;
     int memread;
     int memwrite;
     int regwrite;
@@ -76,7 +76,7 @@ private:
     Latch2 L2;
     Latch3 L3;
     Latch4 L4;
-    vector<int> REG;
+    vector<long long int> REG;
     vector<string> opcodes;
     vector<string> instructions;
     vector<string> v;
@@ -202,7 +202,6 @@ public:
             L2.memread = 0;
             L2.memwrite = 1;
         } else if (opcode == "1100011") { //branch
-            cout<<"hey";
             L2.rs2 = stoi(v[L2.pc].substr(7, 5), nullptr, 2);
             L2.rs1 = stoi(v[L2.pc].substr(12, 5), nullptr, 2);
             if (L3.regwrite == 1 && (L3.rd == L2.rs1 || L3.rd == L2.rs2)) {
@@ -274,6 +273,16 @@ public:
             L2.memwrite = 0;
             L2.memtoreg = 0;
             L2.regwrite = 1;
+        }else if (opcode == "0010111") { // AUIPC
+            L2.rd = stoi(v[L2.pc].substr(20, 5), nullptr, 2);
+            L2.rs1 = -1;
+            L2.rs2 = -1;
+            L2.aluop = 3;
+            L2.alusrc = 2;
+            L2.memread = 0;
+            L2.memwrite = 0;
+            L2.memtoreg = 0;
+            L2.regwrite = 1;
         }
         return 0;
     }
@@ -301,7 +310,7 @@ public:
         if (opcode == "0110011") { //R-type
             string f3 = v[L3.pc].substr(17, 3);
             string f7 = v[L3.pc].substr(0, 7);
-        
+
             int rs1_val = REG[L2.rs1];
             int rs2_val = REG[L2.rs2];
         
@@ -330,15 +339,15 @@ public:
             } else if (f3 == "101" && f7 == "0100000") { //sra
                 L3.result = rs1_val >> (rs2_val & 0x1F);
             }
-        
+
         }  else if (opcode == "0010011") { //I-type
             string f3 = v[L3.pc].substr(17, 3);
-            string f7 = v[L3.pc].substr(0, 7);  
+            string f7 = v[L3.pc].substr(0, 7);
             int rs1_val = REG[L2.rs1];
             int imm;
             if (f3 == "001" || f3 == "101") { //slli
                 int shamt = stoi(v[L3.pc].substr(20, 5), nullptr, 2);
-                if (f3 == "001" && f7 == "0000000") { 
+                if (f3 == "001" && f7 == "0000000") {
                     L3.result = rs1_val << shamt;
                 } else if (f3 == "101" && f7 == "0000000") {
                     L3.result = (uint32_t)rs1_val >> shamt;
@@ -350,7 +359,7 @@ public:
                 if (v[L3.pc][0] == '1') {
                     imm -= (1 << 12);  
                 }
-        
+
                 if (f3 == "000") { //addi
                     L3.result = rs1_val + imm;
                 } else if (f3 == "111") { //andi
@@ -370,7 +379,7 @@ public:
             string f3 = v[L3.pc].substr(17, 3);
             int imm = stoi(v[L3.pc].substr(0, 12), nullptr, 2);
             if (v[L3.pc][0] == '1') {
-                imm -= (1 << 12);  
+                imm -= (1 << 12);
             }
             int addr = REG[L2.rs1] + imm;
             L3.result = addr;
@@ -381,7 +390,7 @@ public:
             int imm_low  = stoi(v[L3.pc].substr(20, 5), nullptr, 2);
             int imm = (imm_high << 5) | imm_low;
             if (v[L3.pc][0] == '1') {
-                imm -= (1 << 12);  
+                imm -= (1 << 12);
             }
             int addr = REG[L2.rs1] + imm;
             L3.result=addr;
@@ -394,9 +403,9 @@ public:
             int imm_19_12 = stoi(inst.substr(12, 8), nullptr, 2) << 12;
             int imm = imm_20 | imm_19_12 | imm_11 | imm_10_1;
             if (inst[0] == '1')
-                imm-=(1<<21);           
-            L3.result = L3.pc + 1; 
-            L3.j=L3.pc+imm/4;  
+                imm-=(1<<21);
+            L3.result = L3.pc + 1;
+            L3.j=L3.pc+imm/4;
 
         }else if(opcode=="1100111"){ //jalr
             string inst=v[L3.pc];
@@ -406,7 +415,17 @@ public:
             }
             int base = (L3.regwrite && L3.rd == L2.rs1) ? L3.result : ((L4.regwrite && L4.rd == L2.rs1 && L4.res != -1) ? L4.res : REG[L2.rs1]);
             L3.result = L3.pc+1;
-            L3.j=base+imm/4;            
+            L3.j=base+imm/4;
+        }
+        else if (opcode == "0010111") { // AUIPC
+
+            string imm_str = v[L2.pc].substr(0, 20); // bits 31-12
+            long long int imm_val = stoll(imm_str, nullptr, 2) << 12;
+            if (imm_str[0] == '1') {
+                imm_val -= (1LL << 32);
+            }
+
+            L3.result=imm_val;
         }
     }
 

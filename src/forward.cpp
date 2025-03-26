@@ -45,7 +45,7 @@ struct Latch2 { // ID-EX Latch
 
 struct Latch3 { // EX-MEM Latch
     int rd;
-    int result;
+    long long int result;
     int memread;
     int memwrite;
     int regwrite;
@@ -78,7 +78,7 @@ private:
     Latch2 L2;
     Latch3 L3;
     Latch4 L4;
-    vector<int> REG;
+    vector<long long int> REG;
     vector<string> opcodes;
     vector<string> instructions;
     vector<string> v;
@@ -129,7 +129,7 @@ FProcessor(const vector<string>& opcs, const vector<string>& instrs, int cycles)
             pt += 4;
         }
         v[pc]=binary;
-        L1.pc = pc; // propagate pc 
+        L1.pc = pc; // propagate pc
         return 1;
     }
 
@@ -209,7 +209,7 @@ FProcessor(const vector<string>& opcs, const vector<string>& instrs, int cycles)
             if (imm_str[0] == '1') {
                 imm_val -= (1 << 13);
             }
-            // forwarding 
+            // forwarding
             int op1 = (L3.regwrite && L3.rd == L2.rs1) ? L3.result : ((L4.regwrite && L4.rd == L2.rs1 && L4.res != -1) ? L4.res : REG[L2.rs1]);
             int op2 = (L3.regwrite && L3.rd == L2.rs2) ? L3.result : ((L4.regwrite && L4.rd == L2.rs2 && L4.res != -1) ? L4.res : REG[L2.rs2]);
             L2.rd = 0;
@@ -263,6 +263,16 @@ FProcessor(const vector<string>& opcs, const vector<string>& instrs, int cycles)
             L2.memwrite = 0;
             L2.memtoreg = 0;
             L2.regwrite = 1;
+        }else if (opcode == "0010111") { // AUIPC
+            L2.rd = stoi(v[L2.pc].substr(20, 5), nullptr, 2);
+            L2.rs1 = -1;
+            L2.rs2 = -1;
+            L2.aluop = 3;
+            L2.alusrc = 2;
+            L2.memread = 0;
+            L2.memwrite = 0;
+            L2.memtoreg = 0;
+            L2.regwrite = 1;
         }
         return 0;
     }
@@ -275,7 +285,7 @@ FProcessor(const vector<string>& opcs, const vector<string>& instrs, int cycles)
             L3.pc = L2.pc;
             return;
         }
-    
+
         cout << L2.pc << " " << c;
         ans[L2.pc][c] = 3;
         // ctrl signal propagation
@@ -284,7 +294,7 @@ FProcessor(const vector<string>& opcs, const vector<string>& instrs, int cycles)
         L3.memtoreg = L2.memtoreg;
         L3.memread = L2.memread;
         L3.memwrite = L2.memwrite;
-    
+
         string opcode = v[L3.pc].substr(25, 7);
         string f3 = v[L3.pc].substr(17, 3);
         string f7 = v[L3.pc].substr(0, 7);
@@ -298,7 +308,7 @@ FProcessor(const vector<string>& opcs, const vector<string>& instrs, int cycles)
             else if (f3 == "000" && f7 == "0100000") L3.result = rs1_val - rs2_val; // sub
             else if (f3 == "000" && f7 == "0000001") L3.result = rs1_val * rs2_val; // mul
             else if (f3 == "100" && f7 == "0000001") L3.result = (rs2_val != 0) ? rs1_val / rs2_val : -1; // div
-            else if (f3 == "100" && f7 == "0000000") L3.result = rs1_val ^ rs2_val; // xor    
+            else if (f3 == "100" && f7 == "0000000") L3.result = rs1_val ^ rs2_val; // xor
             else if (f3 == "110" && f7 == "0000000") L3.result = rs1_val | rs2_val; // or
             else if (f3 == "111" && f7 == "0000000") L3.result = rs1_val & rs2_val; // and
             else if (f3 == "001" && f7 == "0000000") L3.result = rs1_val << (rs2_val & 0x1F); // sll
@@ -307,7 +317,7 @@ FProcessor(const vector<string>& opcs, const vector<string>& instrs, int cycles)
             else if (f3 == "101" && f7 == "0000000") L3.result = (uint32_t)rs1_val >> (rs2_val & 0x1F); // srl
             else if (f3 == "101" && f7 == "0100000") L3.result = rs1_val >> (rs2_val & 0x1F); // sra
         }
-    
+
         else if (opcode == "0010011") {
             int imm = stoi(v[L3.pc].substr(0, 12), nullptr, 2);
             if (v[L3.pc][0] == '1') imm -= (1 << 12);
@@ -332,9 +342,9 @@ FProcessor(const vector<string>& opcs, const vector<string>& instrs, int cycles)
             int imm = stoi(v[L3.pc].substr(0, 12), nullptr, 2);
             if (v[L3.pc][0] == '1') imm -= (1 << 12);
             L3.result = rs1_val + imm;
-            L3.imm = imm; 
+            L3.imm = imm;
         }
-    
+
         else if (opcode == "0100011") { // sw
             int imm_high = stoi(v[L3.pc].substr(0, 7), nullptr, 2);
             int imm_low = stoi(v[L3.pc].substr(20, 5), nullptr, 2);
@@ -342,7 +352,7 @@ FProcessor(const vector<string>& opcs, const vector<string>& instrs, int cycles)
             if (v[L3.pc][0] == '1') imm -= (1 << 12);
             L3.result = rs1_val + imm;
             L3.imm = imm;
-        }    
+        }
 
         else if (opcode == "1101111") { // jal
             string inst = v[L3.pc];
@@ -352,15 +362,25 @@ FProcessor(const vector<string>& opcs, const vector<string>& instrs, int cycles)
             int imm_19_12 = stoi(inst.substr(12, 8), nullptr, 2) << 12;
             int imm = imm_20 | imm_19_12 | imm_11 | imm_10_1;
             if (inst[0] == '1') imm -= (1 << 21);
-            L3.result = L3.pc + 1; // return address 
+            L3.result = L3.pc + 1; // return address
             L3.j = L3.pc + imm / 4; // jump address
-        }    
+        }
 
         else if (opcode == "1100111") { // jalr
             int imm = stoi(v[L3.pc].substr(0, 12), nullptr, 2);
             if (v[L3.pc][0] == '1') imm -= (1 << 12);
             L3.result = L3.pc + 1;
             L3.j = (rs1_val + imm) / 4; // jump address
+        }
+        else if (opcode == "0010111") { // AUIPC
+
+            string imm_str = v[L2.pc].substr(0, 20); // bits 31-12
+            long long int imm_val = stoll(imm_str, nullptr, 2) << 12;
+            if (imm_str[0] == '1') {
+                imm_val -= (1LL << 32);
+            }
+
+            L3.result=imm_val;
         }
     }    
 
@@ -604,7 +624,6 @@ FProcessor(const vector<string>& opcs, const vector<string>& instrs, int cycles)
                 L1.ON=0;
                 if(pc==(int)opcodes.size()){
                     if(L3.j!=-1){ // last instr jump case
-                        cout<<"hi";
                         if(L1.ded==0){
                             L2.nop=1;
                         }
