@@ -370,7 +370,7 @@ FProcessor(const vector<string>& opcs, const vector<string>& instrs, int cycles)
             int imm = stoi(v[L3.pc].substr(0, 12), nullptr, 2);
             if (v[L3.pc][0] == '1') imm -= (1 << 12);
             L3.result = L3.pc + 1;
-            L3.j = (rs1_val + imm) / 4; // jump address
+            L3.j = rs1_val + imm/4; // jump address
         }
         else if (opcode == "0010111") { // AUIPC
 

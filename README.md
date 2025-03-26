@@ -28,6 +28,10 @@
 
 # Known Issues in Implementation
 - No issues were detected in the pipeline diagrams (as tested on the provided program list) 
-- Branches and jumps are working perfectly. 
-- However, we did not test the operations extensively due to the instructions provided towards the end. Hence 
+- Branches and jumps are working perfectly. We varied register values and got branch taken/not taken as expected. 
+- However, we did not test the actual operations extensively due to the instructions provided in the mail. So even though trivial operations work as expected, issues might arise if thorough testing is done.
 
+
+# Sources Consulted
+- ChatGPT was used to implement the parts involving bit shifts and immediate value generation becuase we were not familiar with how this works. Also consulted ChatGPT for instructions which were a bit advanced like AUIPC, sltu, sra, etc.
+- Henessy and Patterson book was referred for all the control signals and different instruction formats. ChatGPT was used to obtain the exact opcode, rs1, rs2, rd, imm configurations in all these formats.
