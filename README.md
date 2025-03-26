@@ -26,4 +26,8 @@
 *NOTE:* We have simulated all operations extensively and updated the register values at each stage of the computation. Moreover, we have not assumed that branch will always not be taken, but have explicitly checked the branch condition in the ID stage and taken/not taken the branch based on that. 
 
 
+# Known Issues in Implementation
+- No issues were detected in the pipeline diagrams (as tested on the provided program list) 
+- Branches and jumps are working perfectly. 
+- However, we did not test the operations extensively due to the instructions provided towards the end. Hence 
 

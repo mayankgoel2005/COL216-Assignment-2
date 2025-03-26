@@ -9,3 +9,5 @@ forward.dSYM
 noforward.dSYM
 *.dSYM/
 src/a.out
+src/forward.exe
+src/noforward.exe
