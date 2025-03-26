@@ -20,13 +20,13 @@
 
 using namespace std;
 
-struct Latch1 {
+struct Latch1 { //if-id latch
     int pc;
     int ON;
     int ded;
 };
 
-struct Latch2 {
+struct Latch2 { //id-ex latch
     int pc;
     int rs1;
     int rs2;
@@ -43,7 +43,7 @@ struct Latch2 {
     int ded;
 };
 
-struct Latch3 {
+struct Latch3 { //ex-mem 
     int rd;
     int result;
     int memread;
@@ -58,7 +58,7 @@ struct Latch3 {
     int j;
 };
 
-struct Latch4 {
+struct Latch4 { //mem-wb
     int rd;
     int memtoreg;
     int regwrite;
@@ -91,13 +91,12 @@ private:
 
 public:
     NFProcessor(const vector<string>& opcs, const vector<string>& instrs,int cycles)
-        : REG(32, 0),          // 5th declared member
-          opcodes(opcs),// 6th
-          instructions(instrs),// 7th
-          ans(opcs.size(), vector<int>(cycles+1, 0)),  // 8th
-          MEM(1024, 1),        // 9th
-          Cycles(cycles+1) {   // 10th
-        // Body assignments remain unchanged
+        : REG(32, 0),         
+          opcodes(opcs),
+          instructions(instrs),
+          ans(opcs.size(), vector<int>(cycles+1, 0)),  
+          MEM(1024, 1),       
+          Cycles(cycles+1) {   
         L1 = {-1, 0, 0};
         L2 = {-1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
         L3 = {0, 0, 0, 0, 0, 0, 0, -1, 0, 0, 0, -1};
@@ -107,9 +106,7 @@ public:
 
     int IFSTAGE(int pc) {
         cout<<pc<<" "<<c;
-        cout<<L2.pc<<L3.pc<<L4.pc<<pcc;
-        if(pc!=-1 && (L2.pc==pc || L3.pc==pc || L4.pc==pc || pc==pcc)){
-            cout<<"yes";
+        if(pc!=-1 && (L2.pc==pc || L3.pc==pc || L4.pc==pc || pc==pcc)){ //checking 
             return -1;
         }
         ans[pc][c]=1;
@@ -120,7 +117,7 @@ public:
         string binary(32, '0');
         string hex = opcodes[pc];
         int pt = 0;
-        for (char e : hex) {
+        for (char e : hex) { //hex to binary
             int a = stoi(string(1, e), nullptr, 16);
             int k = 3;
             while (k >= 0) {
@@ -147,25 +144,26 @@ public:
         cout<<L2.pc<<" "<<c;
         ans[L2.pc][c]=2;
         string opcode = v[L2.pc].substr(25, 7);
-        if (opcode == "0110011") {
+        if (opcode == "0110011") { //R-type
             L2.rd = stoi(v[L2.pc].substr(20, 5), nullptr, 2);
             L2.rs1 = stoi(v[L2.pc].substr(12, 5), nullptr, 2);
             L2.rs2 = stoi(v[L2.pc].substr(7, 5), nullptr, 2);
         
-            if (L3.regwrite == 1 && (L3.rd == L2.rs1 || L3.rd == L2.rs2)) {
+            if (L3.regwrite == 1 && (L3.rd == L2.rs1 || L3.rd == L2.rs2)) { //2 stalls
                 L1.ON = 0;
                 return 2;
-            } else if (L4.regwrite == 1 && (L4.rd == L2.rs1 || L4.rd == L2.rs2)) {
+            } else if (L4.regwrite == 1 && (L4.rd == L2.rs1 || L4.rd == L2.rs2)) { //1 stall
                 L1.ON = 0;
                 return 1;
             }
+            //control signals
             L2.aluop = 2;
             L2.alusrc = 0;
             L2.memread = 0;
             L2.memwrite = 0;
             L2.memtoreg = 0;
             L2.regwrite = 1;
-        } else if (opcode == "0010011" || opcode == "0000011") {
+        } else if (opcode == "0010011" || opcode == "0000011") { //I-type and load
             L2.rd = stoi(v[L2.pc].substr(20, 5), nullptr, 2);
             L2.rs1 = stoi(v[L2.pc].substr(12, 5), nullptr, 2);
             L2.rs2 = -1;
@@ -182,11 +180,11 @@ public:
             L2.memwrite = 0;
             L2.memtoreg = 0;
             L2.regwrite = 1;
-            if (opcode == "0000011") {
+            if (opcode == "0000011") { //load
                 L2.memtoreg = 1;
                 L2.memread = 1;
             }
-        } else if (opcode == "0100011") {
+        } else if (opcode == "0100011") { //store
             L2.rd = -1;
             L2.rs1 = stoi(v[L2.pc].substr(12, 5), nullptr, 2);
             L2.rs2 = stoi(v[L2.pc].substr(7, 5), nullptr, 2);
@@ -203,7 +201,7 @@ public:
             L2.memtoreg = 0;
             L2.memread = 0;
             L2.memwrite = 1;
-        } else if (opcode == "1100011") {
+        } else if (opcode == "1100011") { //branch
             cout<<"hey";
             L2.rs2 = stoi(v[L2.pc].substr(7, 5), nullptr, 2);
             L2.rs1 = stoi(v[L2.pc].substr(12, 5), nullptr, 2);
@@ -211,7 +209,6 @@ public:
                 L1.ON = 0;
                 return 2;
             } else if (L4.regwrite == 1 && (L4.rd == L2.rs1 || L4.rd == L2.rs2)) {
-                cout<<"oops";
                 L1.ON = 0;
                 return 1;
             }
@@ -250,7 +247,7 @@ public:
             L2.memwrite = 0;
             L2.memtoreg = 0;
             L2.regwrite = 0;
-        }else if (opcode == "1101111") {
+        }else if (opcode == "1101111") { //jal
             L2.rd = stoi(v[L2.pc].substr(20, 5), nullptr, 2);
             L2.rs1 = -1;
             L2.rs2 = -1;
@@ -260,7 +257,7 @@ public:
             L2.memwrite = 0;
             L2.memtoreg = 0;
             L2.regwrite = 1;
-        } else if (opcode == "1100111") {
+        } else if (opcode == "1100111") { //jalr
             L2.rs1 = stoi(v[L2.pc].substr(12, 5), nullptr, 2);
             L2.rs2 = -1;
             L2.rd = stoi(v[L2.pc].substr(20, 5), nullptr, 2);
@@ -291,6 +288,7 @@ public:
         }
         cout<<L2.pc<<" "<<c;
         ans[L2.pc][c]=3;
+        //ctrl signal propagation
         L3.rd = L2.rd;
         L3.rs2=L2.rs2;
         L3.pc = L2.pc;
@@ -300,47 +298,47 @@ public:
         L3.regwrite = L2.regwrite;
         string opcode = v[L3.pc].substr(25, 7);
 
-        if (opcode == "0110011") {
+        if (opcode == "0110011") { //R-type
             string f3 = v[L3.pc].substr(17, 3);
             string f7 = v[L3.pc].substr(0, 7);
         
             int rs1_val = REG[L2.rs1];
             int rs2_val = REG[L2.rs2];
         
-            if (f3 == "000" && f7 == "0000000") { 
+            if (f3 == "000" && f7 == "0000000") { //add
                 L3.result = rs1_val + rs2_val;
-            } else if (f3 == "000" && f7 == "0100000") {
+            } else if (f3 == "000" && f7 == "0100000") { //sub
                 L3.result = rs1_val - rs2_val;
-            } else if (f3 == "000" && f7 == "0000001") {
+            } else if (f3 == "000" && f7 == "0000001") { //mul
                 L3.result = rs1_val * rs2_val;
-            } else if (f3 == "100" && f7 == "0000001") {
+            } else if (f3 == "100" && f7 == "0000001") { //div
                 L3.result = (rs2_val != 0) ? (rs1_val / rs2_val) : -1;
-            } else if (f3 == "110" && f7 == "0000000") {
+            } else if (f3 == "110" && f7 == "0000000") { //or
                 L3.result = rs1_val | rs2_val;
-            } else if (f3 == "111" && f7 == "0000000") {
+            } else if (f3 == "111" && f7 == "0000000") { //and
                 L3.result = rs1_val & rs2_val;
-            } else if (f3 == "100" && f7 == "0000000") {
+            } else if (f3 == "100" && f7 == "0000000") { //xor
                 L3.result = rs1_val ^ rs2_val;
-            } else if (f3 == "001" && f7 == "0000000") {
+            } else if (f3 == "001" && f7 == "0000000") { //sll
                 L3.result = rs1_val << (rs2_val & 0x1F);
-            } else if (f3 == "010" && f7 == "0000000") {
+            } else if (f3 == "010" && f7 == "0000000") { //slt
                 L3.result = (rs1_val < rs2_val) ? 1 : 0;
-            } else if (f3 == "011" && f7 == "0000000") {
+            } else if (f3 == "011" && f7 == "0000000") { //sltu
                 L3.result = ((uint32_t)rs1_val < (uint32_t)rs2_val) ? 1 : 0;
-            } else if (f3 == "101" && f7 == "0000000") {
+            } else if (f3 == "101" && f7 == "0000000") { //srl
                 L3.result = (uint32_t)rs1_val >> (rs2_val & 0x1F);
-            } else if (f3 == "101" && f7 == "0100000") {
+            } else if (f3 == "101" && f7 == "0100000") { //sra
                 L3.result = rs1_val >> (rs2_val & 0x1F);
             }
         
-        }  else if (opcode == "0010011") {
+        }  else if (opcode == "0010011") { //I-type
             string f3 = v[L3.pc].substr(17, 3);
             string f7 = v[L3.pc].substr(0, 7);  
             int rs1_val = REG[L2.rs1];
             int imm;
-            if (f3 == "001" || f3 == "101") {
+            if (f3 == "001" || f3 == "101") { //slli
                 int shamt = stoi(v[L3.pc].substr(20, 5), nullptr, 2);
-                if (f3 == "001" && f7 == "0000000") {
+                if (f3 == "001" && f7 == "0000000") { 
                     L3.result = rs1_val << shamt;
                 } else if (f3 == "101" && f7 == "0000000") {
                     L3.result = (uint32_t)rs1_val >> shamt;
@@ -353,22 +351,22 @@ public:
                     imm -= (1 << 12);  
                 }
         
-                if (f3 == "000") {
+                if (f3 == "000") { //addi
                     L3.result = rs1_val + imm;
-                } else if (f3 == "111") {
+                } else if (f3 == "111") { //andi
                     L3.result = rs1_val & imm;
-                } else if (f3 == "110") {
+                } else if (f3 == "110") { //ori
                     L3.result = rs1_val | imm;
-                } else if (f3 == "100") {
+                } else if (f3 == "100") { //xori
                     L3.result = rs1_val ^ imm;
-                } else if (f3 == "010") {
+                } else if (f3 == "010") { //slti
                     L3.result = (rs1_val < imm) ? 1 : 0;
-                } else if (f3 == "011") {
+                } else if (f3 == "011") { //sltiu
                     L3.result = ((uint32_t)rs1_val < (uint32_t)imm) ? 1 : 0;
                 }
             }
 
-        }else if (opcode == "0000011") {
+        }else if (opcode == "0000011") { //lw
             string f3 = v[L3.pc].substr(17, 3);
             int imm = stoi(v[L3.pc].substr(0, 12), nullptr, 2);
             if (v[L3.pc][0] == '1') {
@@ -377,7 +375,7 @@ public:
             int addr = REG[L2.rs1] + imm;
             L3.result = addr;
 
-        }else if (opcode == "0100011") {
+        }else if (opcode == "0100011") { //sw
             string f3 = v[L3.pc].substr(17, 3);
             int imm_high = stoi(v[L3.pc].substr(0, 7), nullptr, 2);
             int imm_low  = stoi(v[L3.pc].substr(20, 5), nullptr, 2);
@@ -388,7 +386,7 @@ public:
             int addr = REG[L2.rs1] + imm;
             L3.result=addr;
 
-        }else if(opcode == "1101111"){
+        }else if(opcode == "1101111"){ //jal 
             string inst = v[L3.pc]; 
             int imm_20   = (inst[0] - '0') << 20;
             int imm_10_1 = stoi(inst.substr(1, 10), nullptr, 2) << 1;
@@ -398,10 +396,9 @@ public:
             if (inst[0] == '1')
                 imm-=(1<<21);           
             L3.result = L3.pc + 1; 
-            L3.j=L3.pc+imm/4; 
-            cout<<imm<<L3.pc;  
+            L3.j=L3.pc+imm/4;  
 
-        }else if(opcode=="1100111"){
+        }else if(opcode=="1100111"){ //jalr
             string inst=v[L3.pc];
             int imm=stoi(inst.substr(0,12),nullptr,2);
             if(v[L3.pc][0]=='1'){
@@ -424,7 +421,7 @@ public:
     
         ans[L3.pc][c] = 4;
         cout << L3.pc << " " << c;
-    
+        //ctrl signal propagation
         L4.rd = L3.rd;
         L4.rs2 = L3.rs2;
         L4.pc = L3.pc;
@@ -490,7 +487,7 @@ public:
                 }
             }
             L4.res = -1; 
-        } else {
+        } else { //mem not needed
             L4.res = L3.result; 
         }
     }
@@ -505,25 +502,24 @@ public:
         pcc=L4.pc;
         ans[pcc][c]=5;
         cout<<pcc<<" "<<c;
-        if (L4.regwrite && L4.rd >= 0 && L4.rd < 32 && L4.res != -1) {
+        if (L4.regwrite && L4.rd > 0 && L4.rd < 32 && L4.res != -1) {
             REG[L4.rd] = L4.res;
         }
         L4.regwrite=0;
         L4.rd=0;
     }
 
-    void printpipeline(){
+    void printpipeline(){ //printing ans matrix
         map<int,string> mpp={{1,"IF"},{2,"ID"},{3,"EX"},{4,"MEM"},{5,"WB"}};
         int ct=0;
         for(auto e:ans){
-            // cout<<ct;
             cout << instructions[ct];
             int k=-2;
-            for(auto f:e){
+            for(auto f:e){ //
                 if(f==0){
-                    cout<<"; ";
+                    cout<<"; "; //empty
                 }else{
-                    if(f==k){
+                    if(f==k){ //stall 
                         cout<<";-";
                     }
                     else{
@@ -545,14 +541,13 @@ public:
         int k=-1;
         int l=0;
         int x;
-        // int ll=0;
         v.resize(opcodes.size(), "");
         for(int cycle = 0; cycle < Cycles+1; cycle++) {
             c=cycle;
             if(L4.ON) {
                 cout << "WB ";
                 WBSTAGE();
-                if(L3.ded){
+                if(L3.ded){ //last instr
                     L4.ON=0;
                     L4.ded=1;
                 }
@@ -564,28 +559,28 @@ public:
             if(L3.ON) {
                 cout << "MEM ";
                 MEMSTAGE();
-                L4.ON = 1;
-                if(L2.ded){
+                L4.ON = 1; //propagate
+                if(L2.ded){ //last instr
                     L3.ON=0;
                     L3.ded=1;
                 }
             } else {
                 cout<<"- ";
-                L4.ON = 0;
+                L4.ON = 0; //stall propagate
                 L4.pc=-1;
                 L4.nop=0;
             }
             if(L2.ON) {
                 cout << "EX ";
                 EXSTAGE();
-                L3.ON = 1;
-                if(L1.ded){
+                L3.ON = 1; //propagate
+                if(L1.ded){ //last instr
                     L2.ded=1;
                     L2.ON=0;
                 }
             } else {
                 cout<<"- ";
-                L3.ON = 0;
+                L3.ON = 0; //stall propagate
                 L3.pc=-1;
                 L3.nop=0;
             }
@@ -609,10 +604,9 @@ public:
                 L2.nop=0;
             }
             if(L0 && pc < (int)opcodes.size()) {
-                cout<<L3.j<<"oh";
-                if(!L2.branch && L3.j==-1){
+                if(!L2.branch && L3.j==-1){ //normal fetch
                     cout <<"IF ";
-                }else if(L3.j!=-1){
+                }else if(L3.j!=-1){ //jump detected
                     cout<<"IFj ";
                     if(L1.ded==0){
                         L2.nop=1;
@@ -623,19 +617,18 @@ public:
                     if(L2.ded==0){
                         L3.nop=1;
                     }
-                }else{
+                }else{ //branch detected
                     cout<<"IFb";
                     L2.nop=1;
                 }
                 x=IFSTAGE(pc);
-                cout<<x<<"oh";
-                if(x==1){
+                if(x==1){ //fetch successful
                     if(L3.j!=-1){
                         pc=L3.j;
                         cout<<pc<<L3.result;
                         L3.j=-1;
                     }
-                    else if(L2.branch){
+                    else if(L2.branch){ 
                         pc--;
                         pc+=(L2.branch/4);
                         L2.branch=0;
@@ -644,7 +637,7 @@ public:
                         pc++;
                     }
                     L1.ON=1;
-                }else if(x==-1){
+                }else if(x==-1){ //cant fetch
                     L1.pc=-1;
                     L2.nop=1;
                 }
@@ -654,8 +647,7 @@ public:
             }else{
                 L1.ON=0;
                 if(pc==(int)opcodes.size()){
-                    if(L3.j!=-1){
-                        cout<<"oops";
+                    if(L3.j!=-1){ //jump in last instr
                         if(L1.ded==0){
                             L2.nop=1;
                         }
@@ -675,7 +667,7 @@ public:
                         L3.ded=0;
                         L4.ded=0;
                         cout<<pc;
-                    }else if(L2.branch){
+                    }else if(L2.branch){ //branch in last instr
                         if(L1.ded==0){
                             L2.nop=1;
                             k=-1;
@@ -693,11 +685,10 @@ public:
                             L4.ded=0;
                         }
                     }
-                    cout<<"h";
                 }
                 cout<<"- ";
             }
-            if(k == 2 || k == 1||k==-1) {
+            if(k == 2 || k == 1||k==-1) { //hazard in ID
                 L2.ON = 0;
             } else if(!L2.ded){
                 L2.ON=1;
