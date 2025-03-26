@@ -277,25 +277,21 @@ FProcessor(const vector<string>& instrs, int cycles)
     
         cout << L2.pc << " " << c;
         ans[L2.pc][c] = 3;
-    
-        L3.rd = L2.rd;
         L3.rs2 = L2.rs2;
         L3.pc = L2.pc;
         L3.memtoreg = L2.memtoreg;
         L3.memread = L2.memread;
         L3.memwrite = L2.memwrite;
-        L3.regwrite = L2.regwrite;
     
         string opcode = v[L3.pc].substr(25, 7);
         cout<<opcode;
         string f3 = v[L3.pc].substr(17, 3);
         string f7 = v[L3.pc].substr(0, 7);
     
-        int rs1_val = (L3.regwrite && L3.rd == L2.rs1) ? L3.result :
-                      ((L4.regwrite && L4.rd == L2.rs1 && L4.res != -1) ? L4.res : REG[L2.rs1]);
-        int rs2_val = (L3.regwrite && L3.rd == L2.rs2) ? L3.result :
-                      ((L4.regwrite && L4.rd == L2.rs2 && L4.res != -1) ? L4.res : REG[L2.rs2]);
-    
+        int rs1_val = (L3.regwrite && L3.rd == L2.rs1) ? L3.result : ((L4.regwrite && L4.rd == L2.rs1 && L4.res != -1) ? L4.res : REG[L2.rs1]);
+        int rs2_val = (L3.regwrite && L3.rd == L2.rs2) ? L3.result : ((L4.regwrite && L4.rd == L2.rs2 && L4.res != -1) ? L4.res : REG[L2.rs2]);
+        L3.rd = L2.rd;
+        L3.regwrite = L2.regwrite;
         if (opcode == "0110011") {
             if (f3 == "000" && f7 == "0000000") L3.result = rs1_val + rs2_val;
             else if (f3 == "000" && f7 == "0100000") L3.result = rs1_val - rs2_val;
@@ -378,17 +374,17 @@ FProcessor(const vector<string>& instrs, int cycles)
         ans[L3.pc][c] = 4;
         cout << L3.pc << " " << c;
     
-        L4.rd = L3.rd;
         L4.rs2 = L3.rs2;
         L4.pc = L3.pc;
         L3.rs2 = 0;
         L3.rd = -1;
-        L4.regwrite = L3.regwrite;
         L4.memtoreg = L3.memtoreg;
         L3.memtoreg = 0;
-        L3.regwrite = 0;
     
-        int addr = L3.result;
+        int addr = ((L4.regwrite && L4.rd == L3.rs2 && L4.res != -1) ? L4.res : REG[L4.rs2]);
+        L4.regwrite = L3.regwrite;
+        L3.regwrite = 0;
+        L4.rd = L3.rd;
         string funct3 = v[L3.pc].substr(17, 3); 
     
         if (L3.memread == 1) {
@@ -607,7 +603,7 @@ FProcessor(const vector<string>& instrs, int cycles)
                 }
             }else{
                 L1.ON=0;
-                if(pc==instructions.size()){
+                if(pc==(int)instructions.size()){
                     if(L3.j!=-1){
                         cout<<"oops";
                         if(L1.ded==0){
@@ -668,7 +664,7 @@ FProcessor(const vector<string>& instrs, int cycles)
 int main(int argc, char* argv[]) {
     // Default values
     string inputFilePath = "../inputfiles/strlen.txt";
-    int cycleCount = 11;
+    int cycleCount = 50;
 
     // Parse command line arguments
     if (argc >= 2) {
