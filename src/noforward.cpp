@@ -95,7 +95,7 @@ public:
           opcodes(opcs),
           instructions(instrs),
           ans(opcs.size(), vector<int>(cycles+1, 0)),  
-          MEM(1024, 1),       
+          MEM(1024, 0),       
           Cycles(cycles+1) {   
         L1 = {-1, 0, 0};
         L2 = {-1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
@@ -104,13 +104,13 @@ public:
     }
 
 
-    int IFSTAGE(int pc) {
+    int IFSTAGE(int pc, int k) {
         cout<<pc<<" "<<c;
         if(pc!=-1 && (L2.pc==pc || L3.pc==pc || L4.pc==pc || pc==pcc)){ //checking 
             return -1;
         }
         ans[pc][c]=1;
-        if(pc!=0 && L1.ON==0){
+        if(pc!=0 && L1.ON==0 && k!=-1){
             L0=0;
             return 0;
         }
@@ -534,6 +534,7 @@ public:
     }
     void run() {
         REG[4]=2;
+        REG[12]=1;
         pc = 0;
         pcc=-1;
         nope=0;
@@ -621,7 +622,7 @@ public:
                     cout<<"IFb";
                     L2.nop=1;
                 }
-                x=IFSTAGE(pc);
+                x=IFSTAGE(pc,k);
                 if(x==1){ //fetch successful
                     if(L3.j!=-1){
                         pc=L3.j;

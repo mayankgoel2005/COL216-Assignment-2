@@ -101,17 +101,17 @@ FProcessor(const vector<string>& opcs, const vector<string>& instrs, int cycles)
       opcodes(opcs),
       instructions(instrs),
       ans(opcs.size(), vector<int>(cycles, 0)),
-      MEM(1024, 1),
+      MEM(1024, 0),
       Cycles(cycles) {
 }
 
-    int IFSTAGE(int pc) {
+    int IFSTAGE(int pc, int k) {
         cout<<pc<<" "<<c;
         if(pc!=-1 &&(L2.pc==pc || L3.pc==pc || L4.pc==pc || pc==pcc)){ // check if two instances of an instruction in same cycle
             return -1;
         }
         ans[pc][c]=1;
-        if(pc!=0 && L1.ON==0){
+        if(pc!=0 && L1.ON==0 && k!=-1){
             L0=0;
             return 0;
         }
@@ -185,10 +185,6 @@ FProcessor(const vector<string>& opcs, const vector<string>& instrs, int cycles)
             L2.rd = -1;
             L2.rs1 = stoi(v[L2.pc].substr(12, 5), nullptr, 2);
             L2.rs2 = stoi(v[L2.pc].substr(7, 5), nullptr, 2);
-            if (L3.memread == 1 && (L3.rd == L2.rs1 || L3.rd == L2.rs2)) {
-                L1.ON = 0;
-                return 2;
-            }
             L2.aluop = 0;
             L2.alusrc = 1;
             L2.regwrite = 0;
@@ -493,6 +489,7 @@ FProcessor(const vector<string>& opcs, const vector<string>& instrs, int cycles)
     }
     void run() { // CPU
         REG[4]=2;
+        REG[12]=1;
         pc = 0;
         pcc=-1;
         nope=0;
@@ -580,7 +577,8 @@ FProcessor(const vector<string>& opcs, const vector<string>& instrs, int cycles)
                     cout<<"IFb";
                     L2.nop=1;
                 }
-                x=IFSTAGE(pc);
+                x=IFSTAGE(pc,k);
+                cout<<x;
                 if(x==1){ // fetch successful
                     if(L3.j!=-1){ 
                         pc=L3.j;
@@ -606,6 +604,7 @@ FProcessor(const vector<string>& opcs, const vector<string>& instrs, int cycles)
                 L1.ON=0;
                 if(pc==(int)opcodes.size()){
                     if(L3.j!=-1){ // last instr jump case
+                        cout<<"hi";
                         if(L1.ded==0){
                             L2.nop=1;
                         }
@@ -614,6 +613,7 @@ FProcessor(const vector<string>& opcs, const vector<string>& instrs, int cycles)
                         if(L1.ded==0){
                             L1.ON=1;
                         }
+                        cout<<L1.ded<<L2.ded;
                         if(L2.ded==0){
                             L3.nop=1;
                         }
