@@ -8,3 +8,4 @@ src/a.out
 forward.dSYM
 noforward.dSYM
 *.dSYM/
+src/a.out
