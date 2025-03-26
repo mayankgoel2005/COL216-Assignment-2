@@ -77,6 +77,7 @@ private:
     Latch3 L3;
     Latch4 L4;
     vector<int> REG;
+    vector<string> opcodes;
     vector<string> instructions;
     vector<string> v;
     vector<vector<int>> ans;
@@ -89,14 +90,15 @@ private:
     int nope;
 
 public:
-FProcessor(const vector<string>& instrs, int cycles)
+FProcessor(const vector<string>& opcs, const vector<string>& instrs, int cycles)
     : L1{-1, 0, 0},
       L2{-1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
       L3{-1, 0, 0, 0, 0, 0, 0, -1, 0, 0, 0, -1},
       L4{0, 0, 0, 0, 0, 0, -1, 0, 0},
       REG(32, 0),
+      opcodes(opcs),
       instructions(instrs),
-      ans(instrs.size(), vector<int>(cycles, 0)),
+      ans(opcs.size(), vector<int>(cycles, 0)),
       MEM(1024, 1),
       Cycles(cycles) {
     // Constructor body (if any)
@@ -115,7 +117,7 @@ FProcessor(const vector<string>& instrs, int cycles)
             return 0;
         }
         string binary(32, '0');
-        string hex = instructions[pc];
+        string hex = opcodes[pc];
         int pt = 0;
         for (char e : hex) {
             int a = stoi(string(1, e), nullptr, 16);
@@ -464,7 +466,8 @@ FProcessor(const vector<string>& instrs, int cycles)
         map<int,string> mpp={{1,"IF"},{2,"ID"},{3,"EX"},{4,"MEM"},{5,"WB"}};
         int ct=0;
         for(auto e:ans){
-            cout<<ct;
+            // cout<<ct;
+            cout << instructions[ct];
             int k=-2;
             for(auto f:e){
                 if(f==0){
@@ -495,7 +498,7 @@ FProcessor(const vector<string>& instrs, int cycles)
         int l=0;
         int x;
         // int ll=0;
-        v.resize(instructions.size(), "");
+        v.resize(opcodes.size(), "");
         for(int cycle = 0; cycle < Cycles; cycle++) {
             c=cycle;
             if(L4.ON) {
@@ -559,7 +562,7 @@ FProcessor(const vector<string>& instrs, int cycles)
                 L2.nop=0;
             }
             cout<<pc<<L1.ded;
-            if(L0 && pc < (int)instructions.size()) {
+            if(L0 && pc < (int)opcodes.size()) {
                 if(!L2.branch && L3.j==-1){
                     cout <<"IF ";
                 }else if(L3.j!=-1){
@@ -598,12 +601,12 @@ FProcessor(const vector<string>& instrs, int cycles)
                     L2.nop=1;
                     L1.pc=-1;
                 }
-                if(pc==static_cast<int>(instructions.size())){
+                if(pc==static_cast<int>(opcodes.size())){
                     l=-1;
                 }
             }else{
                 L1.ON=0;
-                if(pc==(int)instructions.size()){
+                if(pc==(int)opcodes.size()){
                     if(L3.j!=-1){
                         cout<<"oops";
                         if(L1.ded==0){
@@ -704,6 +707,12 @@ int main(int argc, char* argv[]) {
         string firstNumber, opcode, instruction;
         iss >> firstNumber >> opcode; // Ignore the first number and read the opcode
         getline(iss, instruction);   // Read the rest of the line as the instruction
+
+        // Remove leading whitespaces or tabs from the instruction
+        instruction.erase(instruction.begin(), find_if(instruction.begin(), instruction.end(), [](unsigned char ch) {
+            return !isspace(ch);
+        }));
+
         opcodes.push_back(opcode);
         instructions.push_back(instruction);
     }
@@ -721,7 +730,7 @@ int main(int argc, char* argv[]) {
     streambuf* oldCoutBuffer = cout.rdbuf();
     cout.rdbuf(outputFile.rdbuf());
 
-    FProcessor processor(opcodes, cycleCount);
+    FProcessor processor(opcodes, instructions, cycleCount);
     processor.run();
 
     // Restore the original buffer

@@ -4,5 +4,7 @@ forward
 noforward
 src/noforward
 src/forward
+src/a.out
 forward.dSYM
 noforward.dSYM
+*.dSYM/

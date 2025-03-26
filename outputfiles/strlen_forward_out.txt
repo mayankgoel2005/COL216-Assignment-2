@@ -1,66 +1,29 @@
-fuck- - - 647698812- 00IF 0 0-1-1-1-11
+fuck- - - 1- 00IF 0 0-1-1-1-11
 - - - ID 00 110IF 1 10-1-1-11
-- - EX 0 20010011ID 11 2551220IFb2 210-1-11
-- MEM 0 3EX 1 31100011ID nop290IF 9 3210-11
-WB 0 4MEM 1 4EX nopID 99 4-1512100IFb10 492101
-WB 1 5MEM nopEX 9 51100011ID nop10140IF 14 5109211
-WB nopMEM 9 6EX nopID 1414 6151h- 
-WB 9 7MEM nopEX 14 711001111- 151oops0h- 
-WB nopMEM 14 8- 1- 00IF 0 8-1-114101
-WB 14 9- - ID 00 910IF 1 90-1-1141
-- - EX 0 100010011ID 11 10551220IFb2 1010-1-11
-- MEM 0 11EX 1 111100011ID nop290IF 9 11210-11
-WB 0 12MEM 1 12EX nopID 99 12-1512100IFb10 1292101
-WB 1 13MEM nopEX 9 131100011ID nop10140IF 14 13109211
-WB nopMEM 9 14EX nopID 1414 14151h- 
-WB 9 15MEM nopEX 14 1511001111- 151oops0h- 
-WB nopMEM 14 16- 1- 00IF 0 16-1-114101
-WB 14 17- - ID 00 1710IF 1 170-1-1141
-- - EX 0 180010011ID 11 18551220IFb2 1810-1-11
-- MEM 0 19EX 1 191100011ID nop290IF 9 19210-11
-WB 0 20MEM 1 20EX nopID 99 20-1512100IFb10 2092101
-WB 1 21MEM nopEX 9 211100011ID nop10140IF 14 21109211
-WB nopMEM 9 22EX nopID 1414 22151h- 
-WB 9 23MEM nopEX 14 2311001111- 151oops0h- 
-WB nopMEM 14 24- 1- 00IF 0 24-1-114101
-WB 14 25- - ID 00 2510IF 1 250-1-1141
-- - EX 0 260010011ID 11 26551220IFb2 2610-1-11
-- MEM 0 27EX 1 271100011ID nop290IF 9 27210-11
-WB 0 28MEM 1 28EX nopID 99 28-1512100IFb10 2892101
-WB 1 29MEM nopEX 9 291100011ID nop10140IF 14 29109211
-WB nopMEM 9 30EX nopID 1414 30151h- 
-WB 9 31MEM nopEX 14 3111001111- 151oops0h- 
-WB nopMEM 14 32- 1- 00IF 0 32-1-114101
-WB 14 33- - ID 00 3310IF 1 330-1-1141
-- - EX 0 340010011ID 11 34551220IFb2 3410-1-11
-- MEM 0 35EX 1 351100011ID nop290IF 9 35210-11
-WB 0 36MEM 1 36EX nopID 99 36-1512100IFb10 3692101
-WB 1 37MEM nopEX 9 371100011ID nop10140IF 14 37109211
-WB nopMEM 9 38EX nopID 1414 38151h- 
-WB 9 39MEM nopEX 14 3911001111- 151oops0h- 
-WB nopMEM 14 40- 1- 00IF 0 40-1-114101
-WB 14 41- - ID 00 4110IF 1 410-1-1141
-- - EX 0 420010011ID 11 42551220IFb2 4210-1-11
-- MEM 0 43EX 1 431100011ID nop290IF 9 43210-11
-WB 0 44MEM 1 44EX nopID 99 44-1512100IFb10 4492101
-WB 1 45MEM nopEX 9 451100011ID nop10140IF 14 45109211
-WB nopMEM 9 46EX nopID 1414 46151h- 
-WB 9 47MEM nopEX 14 4711001111- 151oops0h- 
-WB nopMEM 14 48- 1- 00IF 0 48-1-114101
-WB 14 49- - ID 00 4910IF 1 490-1-1141
-0;IF;ID;EX;MEM;WB; ; ; ;IF;ID;EX;MEM;WB; ; ; ;IF;ID;EX;MEM;WB; ; ; ;IF;ID;EX;MEM;WB; ; ; ;IF;ID;EX;MEM;WB; ; ; ;IF;ID;EX;MEM;WB; ; ; ;IF;ID
-1; ;IF;ID;EX;MEM;WB; ; ; ;IF;ID;EX;MEM;WB; ; ; ;IF;ID;EX;MEM;WB; ; ; ;IF;ID;EX;MEM;WB; ; ; ;IF;ID;EX;MEM;WB; ; ; ;IF;ID;EX;MEM;WB; ; ; ;IF
-2; ; ;IF; ; ; ; ; ; ; ;IF; ; ; ; ; ; ; ;IF; ; ; ; ; ; ; ;IF; ; ; ; ; ; ; ;IF; ; ; ; ; ; ; ;IF; ; ; ; ; ; ; 
-3; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; 
-4; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; 
-5; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; 
-6; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; 
-7; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; 
-8; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; 
-9; ; ; ;IF;ID;EX;MEM;WB; ; ; ;IF;ID;EX;MEM;WB; ; ; ;IF;ID;EX;MEM;WB; ; ; ;IF;ID;EX;MEM;WB; ; ; ;IF;ID;EX;MEM;WB; ; ; ;IF;ID;EX;MEM;WB; ; 
-10; ; ; ; ;IF; ; ; ; ; ; ; ;IF; ; ; ; ; ; ; ;IF; ; ; ; ; ; ; ;IF; ; ; ; ; ; ; ;IF; ; ; ; ; ; ; ;IF; ; ; ; ; 
-11; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; 
-12; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; 
-13; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; 
-14; ; ; ; ; ;IF;ID;EX;MEM;WB; ; ; ;IF;ID;EX;MEM;WB; ; ; ;IF;ID;EX;MEM;WB; ; ; ;IF;ID;EX;MEM;WB; ; ; ;IF;ID;EX;MEM;WB; ; ; ;IF;ID;EX;MEM;WB
+- - EX 0 20010011ID 11 220IF 2 210-1-11
+- MEM 0 3EX 1 30110011ID 22 330IF 3 3210-11
+WB 0 4MEM 1 4EX 2 40000011ID 33 4640IF 4 432100
+WB 1 5MEM 2 5- ID 33 5-16040IFb4 53-1211
+WB 2 6- EX 3 61100011ID nop460IF 6 643-121
+- MEM 3 7EX nopID 66 770IF 7 7643-11
+WB 3 8MEM nopEX 6 80010011ID 77 881h- 
+WB nopMEM 6 9EX 7 911001111- 81oops0h- 
+WB 6 10MEM 7 10- 1- 00IF 0 10-1-1761
+WB 7 11- - ID 00 1110IF 1 110-1-171
+- - EX 0 120010011ID 11 1220IF 2 1210-1-11
+- MEM 0 13EX 1 130110011ID 22 1330IF 3 13210-11
+WB 0 14MEM 1 14EX 2 140000011ID 33 14640IF 4 1432100
+WB 1 15MEM 2 15- ID 33 15-16040IFb4 153-1211
+WB 2 16- EX 3 161100011ID nop460IF 6 1643-121
+- MEM 3 17EX nopID 66 1770IF 7 17643-11
+WB 3 18MEM nopEX 6 180010011ID 77 1881h- 
+WB nopMEM 6 19EX 7 1911001111- 81oops0h- 
+addi x5 x0 0;IF;ID;EX;MEM;WB; ; ; ; ; ;IF;ID;EX;MEM;WB; ; ; ; ; 
+add x6 x5 x10; ;IF;ID;EX;MEM;WB; ; ; ; ; ;IF;ID;EX;MEM;WB; ; ; ; 
+lb x6 0 x6; ; ;IF;ID;EX;MEM;WB; ; ; ; ; ;IF;ID;EX;MEM;WB; ; ; 
+beq x6 x0 12; ; ; ;IF;ID;-;EX;MEM;WB; ; ; ; ;IF;ID;-;EX;MEM;WB; 
+addi x5 x5 1; ; ; ; ;IF;-; ; ; ; ; ; ; ; ;IF;-; ; ; ; 
+jal x0 -16; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; 
+addi x10 x5 0; ; ; ; ; ; ;IF;ID;EX;MEM;WB; ; ; ; ; ;IF;ID;EX;MEM
+jalr x0 x1 0; ; ; ; ; ; ; ;IF;ID;EX;MEM;WB; ; ; ; ; ;IF;ID;EX
 0 0 0 0 2 0 0 1

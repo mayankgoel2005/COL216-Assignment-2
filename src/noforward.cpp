@@ -77,6 +77,7 @@ private:
     Latch3 L3;
     Latch4 L4;
     vector<int> REG;
+    vector<string> opcodes;
     vector<string> instructions;
     vector<string> v;
     vector<vector<int>> ans;
@@ -89,10 +90,11 @@ private:
     int pcc;
 
 public:
-    NFProcessor(const vector<string>& instrs, int cycles)
+    NFProcessor(const vector<string>& opcs, const vector<string>& instrs,int cycles)
         : REG(32, 0),          // 5th declared member
-          instructions(instrs),// 6th
-          ans(instrs.size(), vector<int>(cycles+1, 0)),  // 8th
+          opcodes(opcs),// 6th
+          instructions(instrs),// 7th
+          ans(opcs.size(), vector<int>(cycles+1, 0)),  // 8th
           MEM(1024, 1),        // 9th
           Cycles(cycles+1) {   // 10th
         // Body assignments remain unchanged
@@ -116,7 +118,7 @@ public:
             return 0;
         }
         string binary(32, '0');
-        string hex = instructions[pc];
+        string hex = opcodes[pc];
         int pt = 0;
         for (char e : hex) {
             int a = stoi(string(1, e), nullptr, 16);
@@ -512,7 +514,10 @@ public:
 
     void printpipeline(){
         map<int,string> mpp={{1,"IF"},{2,"ID"},{3,"EX"},{4,"MEM"},{5,"WB"}};
+        int ct=0;
         for(auto e:ans){
+            // cout<<ct;
+            cout << instructions[ct];
             int k=-2;
             for(auto f:e){
                 if(f==0){
@@ -527,6 +532,7 @@ public:
                 }
                 k=f;
             }
+            ct++;
             cout<<endl;
         }
         return;
@@ -541,7 +547,7 @@ public:
         int l=0;
         int x;
         // int ll=0;
-        v.resize(instructions.size(), "");
+        v.resize(opcodes.size(), "");
         for(int cycle = 0; cycle < Cycles+1; cycle++) {
             c=cycle;
             if(L4.ON) {
@@ -603,7 +609,7 @@ public:
                 cout<<"- ";
                 L2.nop=0;
             }
-            if(L0 && pc < (int)instructions.size()) {
+            if(L0 && pc < (int)opcodes.size()) {
                 cout<<L3.j<<"oh";
                 if(!L2.branch && L3.j==-1){
                     cout <<"IF ";
@@ -643,12 +649,12 @@ public:
                     L1.pc=-1;
                     L2.nop=1;
                 }
-                if(pc==static_cast<int>(instructions.size())){
+                if(pc==static_cast<int>(opcodes.size())){
                     l=-1;
                 }
             }else{
                 L1.ON=0;
-                if(pc==(int)instructions.size()){
+                if(pc==(int)opcodes.size()){
                     if(L3.j!=-1){
                         cout<<"oops";
                         if(L1.ded==0){
@@ -702,7 +708,7 @@ public:
             cout<<endl;
         }
         printpipeline();
-        cout<<REG[0]<<" "<<REG[1]<<" "<<REG[2]<<" "<<REG[3]<<" "<<REG[4]<<" "<<MEM[1];
+        cout<<REG[0]<<" "<<REG[1]<<" "<<REG[2]<<" "<<REG[3]<<" "<<REG[4]<<" "<<REG[5]<<" "<<REG[6]<<" "<<MEM[1];
     }
 };
 
@@ -747,6 +753,12 @@ int main(int argc, char* argv[]) {
         string firstNumber, opcode, instruction;
         iss >> firstNumber >> opcode; // Ignore the first number and read the opcode
         getline(iss, instruction);   // Read the rest of the line as the instruction
+
+        // Remove leading whitespaces or tabs from the instruction
+        instruction.erase(instruction.begin(), find_if(instruction.begin(), instruction.end(), [](unsigned char ch) {
+            return !isspace(ch);
+        }));
+
         opcodes.push_back(opcode);
         instructions.push_back(instruction);
     }
@@ -764,7 +776,8 @@ int main(int argc, char* argv[]) {
     streambuf* oldCoutBuffer = cout.rdbuf();
     cout.rdbuf(outputFile.rdbuf());
 
-    NFProcessor processor(opcodes, cycleCount);
+    // NFProcessor processor(opcodes, cycleCount);
+    NFProcessor processor(opcodes, instructions, cycleCount);
     processor.run();
 
     // Restore the original buffer

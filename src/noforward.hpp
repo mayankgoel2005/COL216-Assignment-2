@@ -60,7 +60,7 @@ private:
     Latch3 L3;
     Latch4 L4;
     std::vector<int> REG;
-    std::vector<std::string> instructions;
+    std::vector<std::string> opcodes;
     std::vector<std::string> v;
     std::vector<std::vector<int>> ans;
     std::vector<int> MEM;
