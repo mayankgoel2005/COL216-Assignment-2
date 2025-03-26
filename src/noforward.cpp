@@ -535,7 +535,6 @@ public:
             ct++;
             cout<<endl;
         }
-        return;
     }
     void run() {
         REG[4]=2;

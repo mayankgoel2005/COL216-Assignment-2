@@ -56,6 +56,7 @@ struct Latch3 {
     int nop;
     int ded;
     int j;
+    int imm;
 };
 
 struct Latch4 {
@@ -68,6 +69,7 @@ struct Latch4 {
     int pc;
     int res;
     int ded;
+    int imm;
 };
 
 class FProcessor {
@@ -93,8 +95,8 @@ public:
 FProcessor(const vector<string>& opcs, const vector<string>& instrs, int cycles)
     : L1{-1, 0, 0},
       L2{-1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-      L3{-1, 0, 0, 0, 0, 0, 0, -1, 0, 0, 0, -1},
-      L4{0, 0, 0, 0, 0, 0, -1, 0, 0},
+      L3{-1, 0, 0, 0, 0, 0, 0, -1, 0, 0, 0, -1, 0},
+      L4{0, 0, 0, 0, 0, 0, -1, 0, 0, 0},
       REG(32, 0),
       opcodes(opcs),
       instructions(instrs),
@@ -312,7 +314,7 @@ FProcessor(const vector<string>& opcs, const vector<string>& instrs, int cycles)
         else if (opcode == "0010011") {
             int imm = stoi(v[L3.pc].substr(0, 12), nullptr, 2);
             if (v[L3.pc][0] == '1') imm -= (1 << 12);
-    
+            L3.imm=imm;
             if (f3 == "000") L3.result = rs1_val + imm;                // addi
             else if (f3 == "100") L3.result = rs1_val ^ imm;           // xori
             else if (f3 == "110") L3.result = rs1_val | imm;           // ori
@@ -332,7 +334,8 @@ FProcessor(const vector<string>& opcs, const vector<string>& instrs, int cycles)
         else if (opcode == "0000011") { //lw
             int imm = stoi(v[L3.pc].substr(0, 12), nullptr, 2);
             if (v[L3.pc][0] == '1') imm -= (1 << 12);
-            L3.result = rs1_val + imm; 
+            L3.result = rs1_val + imm;
+            L3.imm = imm;
         }
     
         else if (opcode == "0100011") { //sw
@@ -341,6 +344,7 @@ FProcessor(const vector<string>& opcs, const vector<string>& instrs, int cycles)
             int imm = (imm_high << 5) | imm_low;
             if (v[L3.pc][0] == '1') imm -= (1 << 12);
             L3.result = rs1_val + imm;
+            L3.imm = imm;
         }    
 
         else if (opcode == "1101111") { //jal
@@ -353,7 +357,6 @@ FProcessor(const vector<string>& opcs, const vector<string>& instrs, int cycles)
             if (inst[0] == '1') imm -= (1 << 21);
             L3.result = L3.pc + 1;
             L3.j = L3.pc + imm / 4;
-            cout<<"hi";
         }    
 
         else if (opcode == "1100111") { //jalr
@@ -379,14 +382,15 @@ FProcessor(const vector<string>& opcs, const vector<string>& instrs, int cycles)
         L4.rs2 = L3.rs2;
         L4.pc = L3.pc;
         L3.rs2 = 0;
-        L3.rd = -1;
+        L4.imm = L3.imm;
         L4.memtoreg = L3.memtoreg;
         L3.memtoreg = 0;
-    
-        int addr = ((L4.regwrite && L4.rd == L3.rs2 && L4.res != -1) ? L4.res : REG[L4.rs2]);
+        L3.imm=0;
+        int addr = ((L4.regwrite && L4.rd == L3.rs2 && L4.res != -1) ? L4.res+L4.imm : L3.result);
         L4.regwrite = L3.regwrite;
         L3.regwrite = 0;
         L4.rd = L3.rd;
+        L3.rd=-1;
         string funct3 = v[L3.pc].substr(17, 3); 
     
         if (L3.memread == 1) {
