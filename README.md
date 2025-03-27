@@ -29,7 +29,8 @@
 # Known Issues in Implementation
 - No issues were detected in the pipeline diagrams (as tested on the provided program list) 
 - Branches and jumps are working perfectly. We varied register values and got branch taken/not taken as expected. 
-- However, we did not test the actual operations extensively due to the instructions provided in the mail. So even though trivial operations work as expected, issues might arise if thorough testing is done.
+- Basic operations work as tested on the provided programs. Thorough testing has not been done due to the instructions in the mail so the level of accuracy cannot be guaranteed.
+- Negative indexing is not allowed in C++ vectors so stack pointer does not grow down by default (addi sp,sp,-16). This can be avoided by setting REG[2] to a large value initially.
 
 
 # Sources Consulted

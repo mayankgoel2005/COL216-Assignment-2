@@ -106,7 +106,6 @@ FProcessor(const vector<string>& opcs, const vector<string>& instrs, int cycles)
 }
 
     int IFSTAGE(int pc, int k) {
-        cout<<pc<<" "<<c;
         if(pc!=-1 &&(L2.pc==pc || L3.pc==pc || L4.pc==pc || pc==pcc)){ // check if two instances of an instruction in same cycle
             return -1;
         }
@@ -114,6 +113,10 @@ FProcessor(const vector<string>& opcs, const vector<string>& instrs, int cycles)
         if(pc!=0 && L1.ON==0 && k!=-1){
             L0=0;
             return 0;
+        }
+        if(pc>=opcodes.size()){
+            cerr<<"out of bounds program counter";
+            exit(1);
         }
         string binary(32, '0');
         string hex = opcodes[pc];
@@ -135,15 +138,12 @@ FProcessor(const vector<string>& opcs, const vector<string>& instrs, int cycles)
 
     int IDSTAGE() {
         if(L2.nop){ // nop in L2
-            cout<<"nop";
             L3.nop=L2.nop;
-            L2.pc=L1.pc;
-            cout<<L1.pc;
+            L2.pc=L1.pc;    
             L2.nop=0;
             return 0;
         }
         L2.pc=L1.pc; // propagate pc
-        cout<<L2.pc<<" "<<c;
         ans[L2.pc][c]=2;
         string opcode = v[L2.pc].substr(25, 7);
         if (opcode == "0110011") { // R-Type instructions
@@ -195,7 +195,6 @@ FProcessor(const vector<string>& opcs, const vector<string>& instrs, int cycles)
             L2.rs2 = stoi(v[L2.pc].substr(7, 5), nullptr, 2);
             L2.rs1 = stoi(v[L2.pc].substr(12, 5), nullptr, 2);
             if (L3.memread && (L3.rd==L2.rs1 || L3.rd==L2.rs2)) {
-                cout<<L3.rd;
                 L1.ON = 0;
                 return 2;
             }
@@ -273,20 +272,21 @@ FProcessor(const vector<string>& opcs, const vector<string>& instrs, int cycles)
             L2.memwrite = 0;
             L2.memtoreg = 0;
             L2.regwrite = 1;
+        }else{
+            cerr<<"instruction not supported";
+            exit(1);
         }
         return 0;
     }
 
     void EXSTAGE() {
         if (L3.nop) { // nop in L3
-            cout << "nop";
             L4.nop = L3.nop;
             L3.nop = 0;
             L3.pc = L2.pc;
             return;
         }
 
-        cout << L2.pc << " " << c;
         ans[L2.pc][c] = 3;
         // ctrl signal propagation
         L3.rs2 = L2.rs2;
@@ -380,13 +380,15 @@ FProcessor(const vector<string>& opcs, const vector<string>& instrs, int cycles)
                 imm_val -= (1LL << 32);
             }
 
-            L3.result=imm_val;
+            L3.result=L2.pc*4+imm_val;
+        }else{
+            cerr<<"instruction not supported";
+            exit(1);
         }
     }    
 
     void MEMSTAGE() {
         if (L4.nop) { // nop in L4
-            cout << "nop";
             nope = L4.nop;
             L4.nop = 0;
             L4.pc = L3.pc;
@@ -394,7 +396,6 @@ FProcessor(const vector<string>& opcs, const vector<string>& instrs, int cycles)
         }
     
         ans[L3.pc][c] = 4;
-        cout << L3.pc << " " << c;
         // ctrl signal propagation
         L4.rs2 = L3.rs2;
         L4.pc = L3.pc;
@@ -404,6 +405,10 @@ FProcessor(const vector<string>& opcs, const vector<string>& instrs, int cycles)
         L3.memtoreg = 0;
         L3.imm=0;
         int addr = ((L4.regwrite && L4.rd == L3.rs2 && L4.res != -1) ? L4.res+L4.imm : L3.result); // memory address 
+        if(addr<0){
+            cerr<<"invalid memory access";
+            exit(1);
+        }
         L4.regwrite = L3.regwrite;
         L3.regwrite = 0;
         L4.rd = L3.rd;
@@ -463,20 +468,18 @@ FProcessor(const vector<string>& opcs, const vector<string>& instrs, int cycles)
             }
             L4.res = -1; 
         } else { // memory not required in this op
-            L4.res = L3.result; 
+            L4.res = L3.result;
         }
     }
 
     void WBSTAGE() {
         if(nope){
-            cout<<"nop";
             nope=0;
             pcc=L4.pc;
             return;
         }
         pcc=L4.pc;
         ans[pcc][c]=5;
-        cout<<pcc<<" "<<c;
         if (L4.regwrite && L4.rd > 0 && L4.rd < 32 && L4.res != -1) {
             REG[L4.rd] = L4.res;
         }
@@ -508,8 +511,6 @@ FProcessor(const vector<string>& opcs, const vector<string>& instrs, int cycles)
         return;
     }
     void run() { // CPU
-        REG[4]=2;
-        REG[12]=1;
         pc = 0;
         pcc=-1;
         nope=0;
@@ -521,7 +522,6 @@ FProcessor(const vector<string>& opcs, const vector<string>& instrs, int cycles)
         for(int cycle = 0; cycle < Cycles; cycle++) {
             c=cycle;
             if(L4.ON) {
-                cout << "WB ";
                 WBSTAGE();
                 if(L3.ded){ // last instr in L4
                     L4.ON=0;
@@ -529,11 +529,9 @@ FProcessor(const vector<string>& opcs, const vector<string>& instrs, int cycles)
                 }
             }else{
                 pcc=-1;
-                cout<<"- ";
                 nope=0; // nop in L4    
             }
             if(L3.ON) {
-                cout << "MEM ";
                 MEMSTAGE();
                 L4.ON = 1; // instruction propagated from L3 to L4
                 if(L2.ded){ // last instr in L3
@@ -541,13 +539,11 @@ FProcessor(const vector<string>& opcs, const vector<string>& instrs, int cycles)
                     L3.ded=1;
                 }
             } else {
-                cout<<"- ";
                 L4.ON = 0; // stall propagated 
                 L4.pc=-1;
                 L4.nop=0;
             }
             if(L2.ON) {
-                cout << "EX ";
                 EXSTAGE();
                 L3.ON = 1; // instr propagated 
                 if(L1.ded){ // last instr in L2
@@ -555,7 +551,6 @@ FProcessor(const vector<string>& opcs, const vector<string>& instrs, int cycles)
                     L2.ON=0;
                 }
             } else {
-                cout<<"- ";
                 L3.ON = 0; // stall propagated 
                 L3.pc=-1;
                 L3.nop=0;
@@ -564,7 +559,6 @@ FProcessor(const vector<string>& opcs, const vector<string>& instrs, int cycles)
                 L1.ON=1;
             }
             if(L1.ON) {
-                cout << "ID ";
                 k = IDSTAGE();
                 L0=1;
                 if(l==-1 && k==0){ // last instr in L1
@@ -575,15 +569,13 @@ FProcessor(const vector<string>& opcs, const vector<string>& instrs, int cycles)
                 if(k!=-1 && x!=-1){
                     L0=0;
                 }
-                cout<<"- ";
                 L2.pc=-1;
                 L2.nop=0;
             }
             if(L0 && pc < (int)opcodes.size()) {
-                if(!L2.branch && L3.j==-1){ // normal fetch
-                    cout <<"IF ";
+                if(!L2.branch && L3.j==-1){ 
+                    // normal fetch
                 }else if(L3.j!=-1){ // jump detected 
-                    cout<<"IFj ";
                     if(L1.ded==0){
                         L2.nop=1;
                     }
@@ -594,11 +586,9 @@ FProcessor(const vector<string>& opcs, const vector<string>& instrs, int cycles)
                         L3.nop=1;
                     }
                 }else{ // branch detected
-                    cout<<"IFb";
                     L2.nop=1;
                 }
                 x=IFSTAGE(pc,k);
-                cout<<x;
                 if(x==1){ // fetch successful
                     if(L3.j!=-1){ 
                         pc=L3.j;
@@ -632,7 +622,6 @@ FProcessor(const vector<string>& opcs, const vector<string>& instrs, int cycles)
                         if(L1.ded==0){
                             L1.ON=1;
                         }
-                        cout<<L1.ded<<L2.ded;
                         if(L2.ded==0){
                             L3.nop=1;
                         }
@@ -643,7 +632,6 @@ FProcessor(const vector<string>& opcs, const vector<string>& instrs, int cycles)
                         L2.ded=0;
                         L3.ded=0;
                         L4.ded=0;
-                        cout<<pc;
                     }else if(L2.branch){ // last instr branch case
                         if(L1.ded==0){
                             L2.nop=1;
@@ -663,7 +651,6 @@ FProcessor(const vector<string>& opcs, const vector<string>& instrs, int cycles)
                         }
                     }
                 }
-                cout<<"- ";
             }
             if(k == 2 || k == 1||k==-1) { // hazard detected in ID 
                 L2.ON = 0;
@@ -672,10 +659,8 @@ FProcessor(const vector<string>& opcs, const vector<string>& instrs, int cycles)
             }else{
                 L2.ON=0;
             }
-            cout<<endl;
         }
         printpipeline();
-        cout<<REG[0]<<" "<<REG[1]<<" "<<REG[2]<<" "<<REG[3]<<" "<<REG[4]<<" "<<REG[5]<<" "<<REG[6]<<" "<<MEM[1];
     }
 };
 

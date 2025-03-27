@@ -105,7 +105,6 @@ public:
 
 
     int IFSTAGE(int pc, int k) {
-        cout<<pc<<" "<<c;
         if(pc!=-1 && (L2.pc==pc || L3.pc==pc || L4.pc==pc || pc==pcc)){ //checking 
             return -1;
         }
@@ -113,6 +112,10 @@ public:
         if(pc!=0 && L1.ON==0 && k!=-1){
             L0=0;
             return 0;
+        }
+        if(pc>=opcodes.size()){
+            cerr<<"out of bounds program counter";
+            exit(1);
         }
         string binary(32, '0');
         string hex = opcodes[pc];
@@ -134,14 +137,12 @@ public:
 
     int IDSTAGE() {
         if(L2.nop){
-            cout<<"nop";
             L3.nop=L2.nop;
             L2.pc=L1.pc;
             L2.nop=0;
             return 0;
         }
         L2.pc=L1.pc;
-        cout<<L2.pc<<" "<<c;
         ans[L2.pc][c]=2;
         string opcode = v[L2.pc].substr(25, 7);
         if (opcode == "0110011") { //R-type
@@ -282,19 +283,20 @@ public:
             L2.memwrite = 0;
             L2.memtoreg = 0;
             L2.regwrite = 1;
+        }else{
+            cerr<<"instruction not supported";
+            exit(1);
         }
         return 0;
     }
 
     void EXSTAGE() {
         if(L3.nop){
-            cout<<"nop";
             L4.nop=L3.nop;
             L3.nop=0;
             L3.pc=L2.pc;
             return;
         }
-        cout<<L2.pc<<" "<<c;
         ans[L2.pc][c]=3;
         //ctrl signal propagation
         L3.rd = L2.rd;
@@ -424,13 +426,15 @@ public:
                 imm_val -= (1LL << 32);
             }
         
-            L3.result=imm_val;
+            L3.result=L2.pc*4+imm_val;
+        }else{
+            cerr<<"instruction not supoorted";
+            exit(1);
         }
     }
 
     void MEMSTAGE() {
         if (L4.nop) {
-            cout << "nop";
             nope = L4.nop;
             L4.nop = 0;
             L4.pc = L3.pc;
@@ -438,7 +442,6 @@ public:
         }
     
         ans[L3.pc][c] = 4;
-        cout << L3.pc << " " << c;
         //ctrl signal propagation
         L4.rd = L3.rd;
         L4.rs2 = L3.rs2;
@@ -451,6 +454,10 @@ public:
         L3.regwrite = 0;
     
         int addr = L3.result;
+        if(addr<0){
+            cerr<<"invalid memory access";
+            exit(1);
+        }
         string funct3 = v[L3.pc].substr(17, 3); 
     
         if (L3.memread == 1) {
@@ -512,14 +519,12 @@ public:
     
     void WBSTAGE() {
         if(nope){
-            cout<<"nop";
             nope=0;
             pcc=L4.pc;
             return;
         }
         pcc=L4.pc;
         ans[pcc][c]=5;
-        cout<<pcc<<" "<<c;
         if (L4.regwrite && L4.rd > 0 && L4.rd < 32 && L4.res != -1) {
             REG[L4.rd] = L4.res;
         }
@@ -551,8 +556,9 @@ public:
         }
     }
     void run() {
-        REG[4]=2;
-        REG[12]=1;
+        REG[11]=1;
+        REG[10]=2;
+        MEM[2]=1;
         pc = 0;
         pcc=-1;
         nope=0;
@@ -561,10 +567,9 @@ public:
         int l=0;
         int x;
         v.resize(opcodes.size(), "");
-        for(int cycle = 0; cycle < Cycles+1; cycle++) {
+        for(int cycle = 0; cycle < Cycles; cycle++) {
             c=cycle;
             if(L4.ON) {
-                cout << "WB ";
                 WBSTAGE();
                 if(L3.ded){ //last instr
                     L4.ON=0;
@@ -572,11 +577,9 @@ public:
                 }
             }else{
                 pcc=-1;
-                cout<<"- ";
                 nope=0;
             }
             if(L3.ON) {
-                cout << "MEM ";
                 MEMSTAGE();
                 L4.ON = 1; //propagate
                 if(L2.ded){ //last instr
@@ -584,13 +587,11 @@ public:
                     L3.ded=1;
                 }
             } else {
-                cout<<"- ";
                 L4.ON = 0; //stall propagate
                 L4.pc=-1;
                 L4.nop=0;
             }
             if(L2.ON) {
-                cout << "EX ";
                 EXSTAGE();
                 L3.ON = 1; //propagate
                 if(L1.ded){ //last instr
@@ -598,7 +599,6 @@ public:
                     L2.ON=0;
                 }
             } else {
-                cout<<"- ";
                 L3.ON = 0; //stall propagate
                 L3.pc=-1;
                 L3.nop=0;
@@ -607,7 +607,6 @@ public:
                 L1.ON=1;
             }
             if(L1.ON) {
-                cout << "ID ";
                 k = IDSTAGE();
                 L0=1;
                 if(l==-1 && k==0){
@@ -619,14 +618,11 @@ public:
                 if(k!=-1 && x!=-1){
                     L0=0;
                 }
-                cout<<"- ";
                 L2.nop=0;
             }
             if(L0 && pc < (int)opcodes.size()) {
                 if(!L2.branch && L3.j==-1){ //normal fetch
-                    cout <<"IF ";
                 }else if(L3.j!=-1){ //jump detected
-                    cout<<"IFj ";
                     if(L1.ded==0){
                         L2.nop=1;
                     }
@@ -637,14 +633,12 @@ public:
                         L3.nop=1;
                     }
                 }else{ //branch detected
-                    cout<<"IFb";
                     L2.nop=1;
                 }
                 x=IFSTAGE(pc,k);
                 if(x==1){ //fetch successful
                     if(L3.j!=-1){
                         pc=L3.j;
-                        cout<<pc<<L3.result;
                         L3.j=-1;
                     }
                     else if(L2.branch){ 
@@ -685,7 +679,6 @@ public:
                         L2.ded=0;
                         L3.ded=0;
                         L4.ded=0;
-                        cout<<pc;
                     }else if(L2.branch){ //branch in last instr
                         if(L1.ded==0){
                             L2.nop=1;
@@ -705,7 +698,6 @@ public:
                         }
                     }
                 }
-                cout<<"- ";
             }
             if(k == 2 || k == 1||k==-1) { //hazard in ID
                 L2.ON = 0;
@@ -714,10 +706,7 @@ public:
             }else{
                 L2.ON=0;
             }
-            cout<<endl;
         }
-        printpipeline();
-        cout<<REG[0]<<" "<<REG[1]<<" "<<REG[2]<<" "<<REG[3]<<" "<<REG[4]<<" "<<REG[5]<<" "<<REG[6]<<" "<<MEM[1];
     }
 };
 
