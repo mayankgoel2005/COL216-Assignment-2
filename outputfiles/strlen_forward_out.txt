@@ -1,25 +1,8 @@
-- - - - IF 0 01
-- - - ID 0 1IF 1 11
-- - EX 0 20ID 1 2IF 2 21
-- MEM 0 3EX 1 3ID 2 3IF 3 31
-WB 0 4MEM 1 4EX 2 4ID 3 46IF 4 40
-WB 1 5MEM 2 5- ID 3 5IF 4 51
-WB 2 6- EX 3 6ID 4 6IF 5 61
-- MEM 3 7EX 4 71ID 5 7IF 6 71
-WB 3 8MEM 4 8EX 5 8ID 6 8IFj 7 81
-WB 4 9MEM 5 9EX nopID nop7IF 1 91
-WB 5 10MEM nopEX nopID 1 10IF 2 101
-WB nopMEM nopEX 1 11ID 2 11IF 3 111
-WB nopMEM 1 12EX 2 12ID 3 126IF 4 120
-WB 1 13MEM 2 13- ID 3 13IFb4 131
-WB 2 14- EX 3 14ID nop4IF 6 141
-addi x5 x0 0;IF;ID;EX;MEM;WB; ; ; ; ; ; ; ; ; ; 
-add x6 x5 x10; ;IF;ID;EX;MEM;WB; ; ; ;IF;ID;EX;MEM;WB; 
-lb x6 0 x6; ; ;IF;ID;EX;MEM;WB; ; ; ;IF;ID;EX;MEM;WB
-beq x6 x0 12; ; ; ;IF;ID;-;EX;MEM;WB; ; ;IF;ID;-;EX
-addi x5 x5 1; ; ; ; ;IF;-;ID;EX;MEM;WB; ; ;IF;-; 
-jal x0 -16; ; ; ; ; ; ;IF;ID;EX;MEM;WB; ; ; ; 
-addi x10 x5 0; ; ; ; ; ; ; ;IF;ID; ; ; ; ; ;IF
-jalr x0 x1 0; ; ; ; ; ; ; ; ;IF; ; ; ; ; ; 
-0 0 0 0 0 1 0 0 0 0 2 1 0 0 0 
-0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+addi x5 x0 0;IF;ID;EX;MEM;WB; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; 
+add x6 x5 x10; ;IF;ID;EX;MEM;WB; ; ; ;IF;ID;EX;MEM;WB; ; ; ;IF;ID;EX;MEM;WB; ; ; ;IF;ID;EX;MEM;WB; ; ; ;IF;ID;EX;MEM;WB; ; ; ;IF;ID;EX;MEM;WB; ; ; ;IF
+lb x6 0 x6; ; ;IF;ID;EX;MEM;WB; ; ; ;IF;ID;EX;MEM;WB; ; ; ;IF;ID;EX;MEM;WB; ; ; ;IF;ID;EX;MEM;WB; ; ; ;IF;ID;EX;MEM;WB; ; ; ;IF;ID;EX;MEM;WB; ; ; 
+beq x6 x0 12; ; ; ;IF;ID;-;EX;MEM;WB; ; ;IF;ID;-;EX;MEM;WB; ; ;IF;ID;-;EX;MEM;WB; ; ;IF;ID;-;EX;MEM;WB; ; ;IF;ID;-;EX;MEM;WB; ; ;IF;ID;-;EX;MEM;WB; 
+addi x5 x5 1; ; ; ; ;IF;-;ID;EX;MEM;WB; ; ;IF;-;ID;EX;MEM;WB; ; ;IF;-;ID;EX;MEM;WB; ; ;IF;-;ID;EX;MEM;WB; ; ;IF;-;ID;EX;MEM;WB; ; ;IF;-;ID;EX;MEM;WB
+jal x0 -16; ; ; ; ; ; ;IF;ID;EX;MEM;WB; ; ; ;IF;ID;EX;MEM;WB; ; ; ;IF;ID;EX;MEM;WB; ; ; ;IF;ID;EX;MEM;WB; ; ; ;IF;ID;EX;MEM;WB; ; ; ;IF;ID;EX;MEM
+addi x10 x5 0; ; ; ; ; ; ; ;IF;ID; ; ; ; ; ; ;IF;ID; ; ; ; ; ; ;IF;ID; ; ; ; ; ; ;IF;ID; ; ; ; ; ; ;IF;ID; ; ; ; ; ; ;IF;ID; 
+jalr x0 x1 0; ; ; ; ; ; ; ; ;IF; ; ; ; ; ; ; ;IF; ; ; ; ; ; ; ;IF; ; ; ; ; ; ; ;IF; ; ; ; ; ; ; ;IF; ; ; ; ; ; ; ;IF; 

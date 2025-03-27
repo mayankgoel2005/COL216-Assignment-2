@@ -1,68 +1,15 @@
-- - - - IF 0 0
-- - - ID 0 1IF 1 1
-- - EX 0 2ID 1 2IF 2 2
-- MEM 0 3- ID 1 3IF 2 3
-WB 0 4- - ID 1 451201IF 2 4
-- - EX 1 5ID 2 5IF 3 5
-- MEM 1 6EX 2 6ID 3 6IF 4 6
-WB 1 7MEM 2 7- ID 3 7IF 4 7
-WB 2 8- - ID 3 8IF 4 8
-- - EX 3 9ID 4 9IF 5 9
-- MEM 3 10- ID 4 10IF 5 10
-WB 3 11- - ID 4 116000IFb5 11
-- - EX 4 12ID nopIF 9 12
-- MEM 4 13EX nopID 9 1351201IF 10 13
-WB 4 14MEM nopEX 9 14ID 10 14IF 11 14
-WB nopMEM 9 15EX 10 15ID 11 15IF 12 15
-WB 9 16MEM 10 16- ID 11 16IF 12 16
-WB 10 17- - ID 11 17IF 12 17
-- - EX 11 18ID 12 18IF 13 18
-- MEM 11 19EX 12 19ID 13 19IF 14 19
-WB 11 20MEM 12 20EX 13 20ID 14 209- 
-WB 12 21MEM 13 21- - IF 9 21
-WB 13 22- - ID 9 2251211IFb10 22
-- - EX 9 23ID nopIF 14 23
-- MEM 9 24EX nopID 14 24- 
-WB 9 25MEM nopEX 14 25- 0- 
-WB nopMEM 14 26- - IF 0 26
-WB 14 27- - ID 0 27IF 1 27
-- - EX 0 28ID 1 28IF 2 28
-- MEM 0 29- ID 1 29IF 2 29
-WB 0 30- - ID 1 3051201IF 2 30
-- - EX 1 31ID 2 31IF 3 31
-- MEM 1 32EX 2 32ID 3 32IF 4 32
-WB 1 33MEM 2 33- ID 3 33IF 4 33
-WB 2 34- - ID 3 34IF 4 34
-- - EX 3 35ID 4 35IF 5 35
-- MEM 3 36- ID 4 36IF 5 36
-WB 3 37- - ID 4 376000IFb5 37
-- - EX 4 38ID nopIF 9 38
-- MEM 4 39EX nopID 9 3951201IF 10 39
-WB 4 40MEM nopEX 9 40ID 10 40IF 11 40
-WB nopMEM 9 41EX 10 41ID 11 41IF 12 41
-WB 9 42MEM 10 42- ID 11 42IF 12 42
-WB 10 43- - ID 11 43IF 12 43
-- - EX 11 44ID 12 44IF 13 44
-- MEM 11 45EX 12 45ID 13 45IF 14 45
-WB 11 46MEM 12 46EX 13 46ID 14 469- 
-WB 12 47MEM 13 47- - IF 9 47
-WB 13 48- - ID 9 4851211IFb10 48
-- - EX 9 49ID nopIF 14 49
-- MEM 9 50EX nopID 14 50- 
-WB 9 51MEM nopEX 14 51- 0- 
-addi x5 x0 0;IF;ID;EX;MEM;WB; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ;IF;ID;EX;MEM;WB; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; 
-bge x5 x12 32; ;IF;ID;-;-;EX;MEM;WB; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ;IF;ID;-;-;EX;MEM;WB; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; 
-add x6 x11 x5; ; ;IF;-;-;ID;EX;MEM;WB; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ;IF;-;-;ID;EX;MEM;WB; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; 
-lb x6 0 x6; ; ; ; ; ;IF;ID;-;-;EX;MEM;WB; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ;IF;ID;-;-;EX;MEM;WB; ; ; ; ; ; ; ; ; ; ; ; ; 
-beq x6 x0 20; ; ; ; ; ; ;IF;-;-;ID;-;-;EX;MEM;WB; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ;IF;-;-;ID;-;-;EX;MEM;WB; ; ; ; ; ; ; ; ; ; 
-add x7 x10 x5; ; ; ; ; ; ; ; ; ;IF;-;-; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ;IF;-;-; ; ; ; ; ; ; ; ; ; ; ; ; 
+addi x5 x0 0;IF;ID;EX;MEM;WB; ; ; ; ; ;IF;ID;EX;MEM;WB; ; ; ; ; ;IF;ID;EX;MEM;WB; ; ; ; ; ;IF;ID;EX;MEM;WB; ; ; ; ; ;IF;ID;EX;MEM;WB; ; ; ; ; ;IF
+bge x5 x12 32; ;IF;ID;-;-;EX;MEM;WB; ; ; ;IF;ID;-;-;EX;MEM;WB; ; ; ;IF;ID;-;-;EX;MEM;WB; ; ; ;IF;ID;-;-;EX;MEM;WB; ; ; ;IF;ID;-;-;EX;MEM;WB; ; ; 
+add x6 x11 x5; ; ;IF;-;-; ; ; ; ; ; ; ;IF;-;-; ; ; ; ; ; ; ;IF;-;-; ; ; ; ; ; ; ;IF;-;-; ; ; ; ; ; ; ;IF;-;-; ; ; ; ; ; 
+lb x6 0 x6; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; 
+beq x6 x0 20; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; 
+add x7 x10 x5; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; 
 sb x6 0 x7; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; 
 addi x5 x5 1; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; 
 jal x0 -28; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; 
-bge x5 x12 20; ; ; ; ; ; ; ; ; ; ; ; ;IF;ID;EX;MEM;WB; ; ; ; ;IF;ID;EX;MEM;WB; ; ; ; ; ; ; ; ; ; ; ; ;IF;ID;EX;MEM;WB; ; ; ; ;IF;ID;EX;MEM
-add x6 x10 x5; ; ; ; ; ; ; ; ; ; ; ; ; ;IF;ID;EX;MEM;WB; ; ; ; ;IF; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ;IF;ID;EX;MEM;WB; ; ; ; ;IF; ; 
-sb x0 0 x6; ; ; ; ; ; ; ; ; ; ; ; ; ; ;IF;ID;-;-;EX;MEM;WB; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ;IF;ID;-;-;EX;MEM;WB; ; ; ; 
-addi x5 x5 1; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ;IF;-;-;ID;EX;MEM;WB; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ;IF;-;-;ID;EX;MEM;WB; ; ; 
-jal x0 -16; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ;IF;ID;EX;MEM;WB; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ;IF;ID;EX;MEM;WB; ; 
-jalr x0 x1 0; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ;IF;ID; ; ;IF;ID;EX;MEM;WB; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ;IF;ID; ; ;IF;ID
-0 0 0 0 2 1 0 0
+bge x5 x12 20; ; ; ; ; ;IF;ID;EX;MEM;WB; ; ; ; ; ;IF;ID;EX;MEM;WB; ; ; ; ; ;IF;ID;EX;MEM;WB; ; ; ; ; ;IF;ID;EX;MEM;WB; ; ; ; ; ;IF;ID;EX;MEM;WB; 
+add x6 x10 x5; ; ; ; ; ; ;IF; ; ; ; ; ; ; ; ; ;IF; ; ; ; ; ; ; ; ; ;IF; ; ; ; ; ; ; ; ; ;IF; ; ; ; ; ; ; ; ; ;IF; ; ; ; 
+sb x0 0 x6; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; 
+addi x5 x5 1; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; 
+jal x0 -16; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; 
+jalr x0 x1 0; ; ; ; ; ; ; ;IF;ID;EX;MEM;WB; ; ; ; ; ;IF;ID;EX;MEM;WB; ; ; ; ; ;IF;ID;EX;MEM;WB; ; ; ; ; ;IF;ID;EX;MEM;WB; ; ; ; ; ;IF;ID;EX;MEM
