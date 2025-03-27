@@ -101,7 +101,7 @@ FProcessor(const vector<string>& opcs, const vector<string>& instrs, int cycles)
       opcodes(opcs),
       instructions(instrs),
       ans(opcs.size(), vector<int>(cycles, 0)),
-      MEM(1024, 0),
+      MEM(1024, 1),
       Cycles(cycles) {
 }
 
@@ -113,10 +113,6 @@ FProcessor(const vector<string>& opcs, const vector<string>& instrs, int cycles)
         if(pc!=0 && L1.ON==0 && k!=-1){
             L0=0;
             return 0;
-        }
-        if(pc>=opcodes.size()){
-            cerr<<"out of bounds program counter";
-            exit(1);
         }
         string binary(32, '0');
         string hex = opcodes[pc];
@@ -139,7 +135,7 @@ FProcessor(const vector<string>& opcs, const vector<string>& instrs, int cycles)
     int IDSTAGE() {
         if(L2.nop){ // nop in L2
             L3.nop=L2.nop;
-            L2.pc=L1.pc;    
+            L2.pc=L1.pc;
             L2.nop=0;
             return 0;
         }
@@ -228,6 +224,9 @@ FProcessor(const vector<string>& opcs, const vector<string>& instrs, int cycles)
                 if (op1!=op2) {
                     L2.branch = imm_val;
                 }
+            }else{
+                cerr<<"unsupported instruction"<<endl;
+                exit(1);
             }
             // control signals for branch
             L2.aluop = 1;
@@ -273,7 +272,7 @@ FProcessor(const vector<string>& opcs, const vector<string>& instrs, int cycles)
             L2.memtoreg = 0;
             L2.regwrite = 1;
         }else{
-            cerr<<"instruction not supported";
+            cerr<<"unsupported instruction"<<endl;
             exit(1);
         }
         return 0;
@@ -316,6 +315,10 @@ FProcessor(const vector<string>& opcs, const vector<string>& instrs, int cycles)
             else if (f3 == "011" && f7 == "0000000") L3.result = ((uint32_t)rs1_val < (uint32_t)rs2_val) ? 1 : 0; // sltu
             else if (f3 == "101" && f7 == "0000000") L3.result = (uint32_t)rs1_val >> (rs2_val & 0x1F); // srl
             else if (f3 == "101" && f7 == "0100000") L3.result = rs1_val >> (rs2_val & 0x1F); // sra
+            else{
+                cerr<<"unsupported instruction"<<endl;
+                exit(1);
+            }
         }
 
         else if (opcode == "0010011") {
@@ -335,6 +338,9 @@ FProcessor(const vector<string>& opcs, const vector<string>& instrs, int cycles)
                 int shamt = stoi(v[L3.pc].substr(20, 5), nullptr, 2);
                 if (f7 == "0000000") L3.result = (uint32_t)rs1_val >> shamt; // srli
                 else if (f7 == "0100000") L3.result = rs1_val >> shamt;      // srai
+            }else{
+                cerr<<"unsupported instruction"<<endl;
+                exit(1);
             }
         }
 
@@ -381,11 +387,8 @@ FProcessor(const vector<string>& opcs, const vector<string>& instrs, int cycles)
             }
 
             L3.result=L2.pc*4+imm_val;
-        }else{
-            cerr<<"instruction not supported";
-            exit(1);
         }
-    }    
+    }
 
     void MEMSTAGE() {
         if (L4.nop) { // nop in L4
@@ -394,7 +397,7 @@ FProcessor(const vector<string>& opcs, const vector<string>& instrs, int cycles)
             L4.pc = L3.pc;
             return;
         }
-    
+
         ans[L3.pc][c] = 4;
         // ctrl signal propagation
         L4.rs2 = L3.rs2;
@@ -404,17 +407,17 @@ FProcessor(const vector<string>& opcs, const vector<string>& instrs, int cycles)
         L4.memtoreg = L3.memtoreg;
         L3.memtoreg = 0;
         L3.imm=0;
-        int addr = ((L4.regwrite && L4.rd == L3.rs2 && L4.res != -1) ? L4.res+L4.imm : L3.result); // memory address 
+        int addr = ((L4.regwrite && L4.rd == L3.rs2 && L4.res != -1) ? L4.res+L4.imm : L3.result); // memory address
         if(addr<0){
-            cerr<<"invalid memory access";
+            cerr<<"invalid memory access"<<endl;
             exit(1);
         }
         L4.regwrite = L3.regwrite;
         L3.regwrite = 0;
         L4.rd = L3.rd;
         L3.rd=-1;
-        string funct3 = v[L3.pc].substr(17, 3); 
-    
+        string funct3 = v[L3.pc].substr(17, 3);
+
         if (L3.memread == 1) { // load instr
             if (addr >= 0 && addr < (int)MEM.size()) {
                 if (funct3 == "000") { // lb
@@ -466,7 +469,7 @@ FProcessor(const vector<string>& opcs, const vector<string>& instrs, int cycles)
                     }
                 }
             }
-            L4.res = -1; 
+            L4.res = -1;
         } else { // memory not required in this op
             L4.res = L3.result;
         }
@@ -486,11 +489,11 @@ FProcessor(const vector<string>& opcs, const vector<string>& instrs, int cycles)
         L4.regwrite=0;
         L4.rd=0;
     }
-    void printpipeline(){ // printing ans matrix 
+    void printpipeline(){ // printing ans matrix
         map<int,string> mpp={{1,"IF"},{2,"ID"},{3,"EX"},{4,"MEM"},{5,"WB"}};
         int ct=0;
         for(auto e:ans){
-            cout << instructions[ct]; // instruction 
+            cout << instructions[ct]; // instruction
             int k=-2;
             for(auto f:e){
                 if(f==0){
@@ -511,6 +514,7 @@ FProcessor(const vector<string>& opcs, const vector<string>& instrs, int cycles)
         return;
     }
     void run() { // CPU
+        REG[11]=1;
         pc = 0;
         pcc=-1;
         nope=0;
@@ -529,7 +533,7 @@ FProcessor(const vector<string>& opcs, const vector<string>& instrs, int cycles)
                 }
             }else{
                 pcc=-1;
-                nope=0; // nop in L4    
+                nope=0; // nop in L4
             }
             if(L3.ON) {
                 MEMSTAGE();
@@ -539,19 +543,19 @@ FProcessor(const vector<string>& opcs, const vector<string>& instrs, int cycles)
                     L3.ded=1;
                 }
             } else {
-                L4.ON = 0; // stall propagated 
+                L4.ON = 0; // stall propagated
                 L4.pc=-1;
                 L4.nop=0;
             }
             if(L2.ON) {
                 EXSTAGE();
-                L3.ON = 1; // instr propagated 
+                L3.ON = 1; // instr propagated
                 if(L1.ded){ // last instr in L2
                     L2.ded=1;
                     L2.ON=0;
                 }
             } else {
-                L3.ON = 0; // stall propagated 
+                L3.ON = 0; // stall propagated
                 L3.pc=-1;
                 L3.nop=0;
             }
@@ -565,7 +569,7 @@ FProcessor(const vector<string>& opcs, const vector<string>& instrs, int cycles)
                     L1.ded=1;
                 }
             }else{
-                L2.ON=0; // stall propagated 
+                L2.ON=0; // stall propagated
                 if(k!=-1 && x!=-1){
                     L0=0;
                 }
@@ -573,9 +577,9 @@ FProcessor(const vector<string>& opcs, const vector<string>& instrs, int cycles)
                 L2.nop=0;
             }
             if(L0 && pc < (int)opcodes.size()) {
-                if(!L2.branch && L3.j==-1){ 
+                if(!L2.branch && L3.j==-1){
                     // normal fetch
-                }else if(L3.j!=-1){ // jump detected 
+                }else if(L3.j!=-1){ // jump detected
                     if(L1.ded==0){
                         L2.nop=1;
                     }
@@ -590,13 +594,21 @@ FProcessor(const vector<string>& opcs, const vector<string>& instrs, int cycles)
                 }
                 x=IFSTAGE(pc,k);
                 if(x==1){ // fetch successful
-                    if(L3.j!=-1){ 
+                    if(L3.j!=-1){
                         pc=L3.j;
+                        if(pc>=(int)opcodes.size()){
+                            cerr<<"out of bounds PC"<<endl;
+                            exit(1);
+                        }
                         L3.j=-1;
                     }
                     else if(L2.branch){
                         pc--;
                         pc+=(L2.branch/4);
+                        if(pc>=(int)opcodes.size()){
+                            cerr<<"out of bounds PC"<<endl;
+                            exit(1);
+                        }
                         L2.branch=0;
                     }
                     else{
@@ -610,7 +622,7 @@ FProcessor(const vector<string>& opcs, const vector<string>& instrs, int cycles)
                 if(pc==static_cast<int>(opcodes.size())){
                     l=-1;
                 }
-            }else{ // IF blocked 
+            }else{ // IF blocked
                 L1.ON=0;
                 if(pc==(int)opcodes.size()){
                     if(L3.j!=-1){ // last instr jump case
@@ -626,6 +638,10 @@ FProcessor(const vector<string>& opcs, const vector<string>& instrs, int cycles)
                             L3.nop=1;
                         }
                         pc=L3.j;
+                        if(pc>=(int)opcodes.size()){
+                            cerr<<"out of bounds PC"<<endl;
+                            exit(1);
+                        }
                         L3.j=-1;
                         l=0;
                         L1.ded=0;
@@ -642,6 +658,10 @@ FProcessor(const vector<string>& opcs, const vector<string>& instrs, int cycles)
                             }
                             pc--;
                             pc=pc+(L2.branch/4);
+                            if(pc>=(int)opcodes.size()){
+                                cerr<<"out of bounds PC"<<endl;
+                                exit(1);
+                            }
                             L2.branch=0;
                             l=0;
                             L1.ded=0;

@@ -95,8 +95,8 @@ public:
           opcodes(opcs),
           instructions(instrs),
           ans(opcs.size(), vector<int>(cycles+1, 0)),  
-          MEM(1024, 0),       
-          Cycles(cycles+1) {   
+          MEM(1024, 1),
+          Cycles(cycles+1) {
         L1 = {-1, 0, 0};
         L2 = {-1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
         L3 = {0, 0, 0, 0, 0, 0, 0, -1, 0, 0, 0, -1};
@@ -105,17 +105,13 @@ public:
 
 
     int IFSTAGE(int pc, int k) {
-        if(pc!=-1 && (L2.pc==pc || L3.pc==pc || L4.pc==pc || pc==pcc)){ //checking 
+        if(pc!=-1 && (L2.pc==pc || L3.pc==pc || L4.pc==pc || pc==pcc)){ //checking
             return -1;
         }
         ans[pc][c]=1;
         if(pc!=0 && L1.ON==0 && k!=-1){
             L0=0;
             return 0;
-        }
-        if(pc>=opcodes.size()){
-            cerr<<"out of bounds program counter";
-            exit(1);
         }
         string binary(32, '0');
         string hex = opcodes[pc];
@@ -149,7 +145,7 @@ public:
             L2.rd = stoi(v[L2.pc].substr(20, 5), nullptr, 2);
             L2.rs1 = stoi(v[L2.pc].substr(12, 5), nullptr, 2);
             L2.rs2 = stoi(v[L2.pc].substr(7, 5), nullptr, 2);
-        
+
             if (L3.regwrite == 1 && (L3.rd == L2.rs1 || L3.rd == L2.rs2)) { //2 stalls
                 L1.ON = 0;
                 return 2;
@@ -213,10 +209,10 @@ public:
                 return 1;
             }
             string f3 = v[L2.pc].substr(17, 3);
-            string imm12  = v[L2.pc].substr(0, 1);  
-            string imm10_5 = v[L2.pc].substr(1, 6);    
-            string imm4_1  = v[L2.pc].substr(20, 4);   
-            string imm11   = v[L2.pc].substr(24, 1);    
+            string imm12  = v[L2.pc].substr(0, 1);
+            string imm10_5 = v[L2.pc].substr(1, 6);
+            string imm4_1  = v[L2.pc].substr(20, 4);
+            string imm11   = v[L2.pc].substr(24, 1);
             string imm_str = imm12 + imm11 + imm10_5 + imm4_1 + "0";
             int imm_val = stoi(imm_str, nullptr, 2);
             if (imm_str[0] == '1') {
@@ -239,6 +235,9 @@ public:
                 if (REG[L2.rs1] != REG[L2.rs2]) {
                     L2.branch = imm_val;
                 }
+            }else{
+                cerr<<"unsupported instruction"<<endl;
+                exit(1);
             }
             L2.aluop = 1;
             L2.alusrc = 0;
@@ -277,14 +276,14 @@ public:
             L2.rd = stoi(v[L2.pc].substr(20, 5), nullptr, 2);
             L2.rs1 = -1;
             L2.rs2 = -1;
-            L2.aluop = 3;      
-            L2.alusrc = 2;     
+            L2.aluop = 3;
+            L2.alusrc = 2;
             L2.memread = 0;
             L2.memwrite = 0;
             L2.memtoreg = 0;
             L2.regwrite = 1;
         }else{
-            cerr<<"instruction not supported";
+            cerr<<"unsupported instruction"<<endl;
             exit(1);
         }
         return 0;
@@ -311,10 +310,10 @@ public:
         if (opcode == "0110011") { //R-type
             string f3 = v[L3.pc].substr(17, 3);
             string f7 = v[L3.pc].substr(0, 7);
-        
+
             int rs1_val = REG[L2.rs1];
             int rs2_val = REG[L2.rs2];
-        
+
             if (f3 == "000" && f7 == "0000000") { //add
                 L3.result = rs1_val + rs2_val;
             } else if (f3 == "000" && f7 == "0100000") { //sub
@@ -339,16 +338,19 @@ public:
                 L3.result = (uint32_t)rs1_val >> (rs2_val & 0x1F);
             } else if (f3 == "101" && f7 == "0100000") { //sra
                 L3.result = rs1_val >> (rs2_val & 0x1F);
+            }else{
+                cerr<<"unsupported instruction"<<endl;
+                exit(1);
             }
-        
+
         }  else if (opcode == "0010011") { //I-type
             string f3 = v[L3.pc].substr(17, 3);
-            string f7 = v[L3.pc].substr(0, 7);  
+            string f7 = v[L3.pc].substr(0, 7);
             int rs1_val = REG[L2.rs1];
             int imm;
             if (f3 == "001" || f3 == "101") { //slli
                 int shamt = stoi(v[L3.pc].substr(20, 5), nullptr, 2);
-                if (f3 == "001" && f7 == "0000000") { 
+                if (f3 == "001" && f7 == "0000000") {
                     L3.result = rs1_val << shamt;
                 } else if (f3 == "101" && f7 == "0000000") {
                     L3.result = (uint32_t)rs1_val >> shamt;
@@ -358,9 +360,9 @@ public:
             } else {
                 imm = stoi(v[L3.pc].substr(0, 12), nullptr, 2);
                 if (v[L3.pc][0] == '1') {
-                    imm -= (1 << 12);  
+                    imm -= (1 << 12);
                 }
-        
+
                 if (f3 == "000") { //addi
                     L3.result = rs1_val + imm;
                 } else if (f3 == "111") { //andi
@@ -373,6 +375,9 @@ public:
                     L3.result = (rs1_val < imm) ? 1 : 0;
                 } else if (f3 == "011") { //sltiu
                     L3.result = ((uint32_t)rs1_val < (uint32_t)imm) ? 1 : 0;
+                }else{
+                    cerr<<"unsupported instruction"<<endl;
+                    exit(1);
                 }
             }
 
@@ -380,7 +385,7 @@ public:
             string f3 = v[L3.pc].substr(17, 3);
             int imm = stoi(v[L3.pc].substr(0, 12), nullptr, 2);
             if (v[L3.pc][0] == '1') {
-                imm -= (1 << 12);  
+                imm -= (1 << 12);
             }
             int addr = REG[L2.rs1] + imm;
             L3.result = addr;
@@ -391,22 +396,22 @@ public:
             int imm_low  = stoi(v[L3.pc].substr(20, 5), nullptr, 2);
             int imm = (imm_high << 5) | imm_low;
             if (v[L3.pc][0] == '1') {
-                imm -= (1 << 12);  
+                imm -= (1 << 12);
             }
             int addr = REG[L2.rs1] + imm;
             L3.result=addr;
 
-        }else if(opcode == "1101111"){ //jal 
-            string inst = v[L3.pc]; 
+        }else if(opcode == "1101111"){ //jal
+            string inst = v[L3.pc];
             int imm_20   = (inst[0] - '0') << 20;
             int imm_10_1 = stoi(inst.substr(1, 10), nullptr, 2) << 1;
             int imm_11   = (inst[11] - '0') << 11;
             int imm_19_12 = stoi(inst.substr(12, 8), nullptr, 2) << 12;
             int imm = imm_20 | imm_19_12 | imm_11 | imm_10_1;
             if (inst[0] == '1')
-                imm-=(1<<21);           
-            L3.result = L3.pc + 1; 
-            L3.j=L3.pc+imm/4;  
+                imm-=(1<<21);
+            L3.result = L3.pc + 1;
+            L3.j=L3.pc+imm/4;
 
         }else if(opcode=="1100111"){ //jalr
             string inst=v[L3.pc];
@@ -416,20 +421,17 @@ public:
             }
             int base = (L3.regwrite && L3.rd == L2.rs1) ? L3.result : ((L4.regwrite && L4.rd == L2.rs1 && L4.res != -1) ? L4.res : REG[L2.rs1]);
             L3.result = L3.pc+1;
-            L3.j=base+imm/4;            
+            L3.j=base+imm/4;
         }
         else if (opcode == "0010111") { // AUIPC
-            
+
             string imm_str = v[L2.pc].substr(0, 20); // bits 31-12
             long long int imm_val = stoll(imm_str, nullptr, 2) << 12;
             if (imm_str[0] == '1') {
                 imm_val -= (1LL << 32);
             }
-        
+
             L3.result=L2.pc*4+imm_val;
-        }else{
-            cerr<<"instruction not supoorted";
-            exit(1);
         }
     }
 
@@ -440,7 +442,7 @@ public:
             L4.pc = L3.pc;
             return;
         }
-    
+
         ans[L3.pc][c] = 4;
         //ctrl signal propagation
         L4.rd = L3.rd;
@@ -452,14 +454,14 @@ public:
         L4.memtoreg = L3.memtoreg;
         L3.memtoreg = 0;
         L3.regwrite = 0;
-    
+
         int addr = L3.result;
         if(addr<0){
-            cerr<<"invalid memory access";
+            cerr<<"invalid memory access"<<endl;
             exit(1);
         }
-        string funct3 = v[L3.pc].substr(17, 3); 
-    
+        string funct3 = v[L3.pc].substr(17, 3);
+
         if (L3.memread == 1) {
             if (addr >= 0 && addr < (int)MEM.size()) {
                 if (funct3 == "000") { // lb
@@ -511,12 +513,12 @@ public:
                     }
                 }
             }
-            L4.res = -1; 
+            L4.res = -1;
         } else { //mem not needed
-            L4.res = L3.result; 
+            L4.res = L3.result;
         }
     }
-    
+
     void WBSTAGE() {
         if(nope){
             nope=0;
@@ -542,7 +544,7 @@ public:
                 if(f==0){
                     cout<<"; "; //empty
                 }else{
-                    if(f==k){ //stall 
+                    if(f==k){ //stall
                         cout<<";-";
                     }
                     else{
@@ -557,8 +559,7 @@ public:
     }
     void run() {
         REG[11]=1;
-        REG[10]=2;
-        MEM[2]=1;
+        REG[2]=20;
         pc = 0;
         pcc=-1;
         nope=0;
@@ -639,12 +640,20 @@ public:
                 if(x==1){ //fetch successful
                     if(L3.j!=-1){
                         pc=L3.j;
+                        if(pc>=(int)opcodes.size()){
+                            cerr<<"out of bounds PC"<<endl;
+                            exit(1);
+                        }
                         L3.j=-1;
                     }
-                    else if(L2.branch){ 
+                    else if(L2.branch){
                         pc--;
                         pc+=(L2.branch/4);
                         L2.branch=0;
+                        if(pc>=(int)opcodes.size()){
+                            cerr<<"out of bounds PC"<<endl;
+                            exit(1);
+                        }
                     }
                     else{
                         pc++;
@@ -673,6 +682,10 @@ public:
                             L3.nop=1;
                         }
                         pc=L3.j;
+                        if(pc>=(int)opcodes.size()){
+                            cerr<<"out of bounds PC"<<endl;
+                            exit(1);
+                        }
                         L3.j=-1;
                         l=0;
                         L1.ded=0;
@@ -689,6 +702,10 @@ public:
                             }
                             pc--;
                             pc=pc+(L2.branch/4);
+                            if(pc>=(int)opcodes.size()){
+                                cerr<<"out of bounds PC"<<endl;
+                                exit(1);
+                            }
                             L2.branch=0;
                             l=0;
                             L1.ded=0;
@@ -707,6 +724,7 @@ public:
                 L2.ON=0;
             }
         }
+        printpipeline();
     }
 };
 
